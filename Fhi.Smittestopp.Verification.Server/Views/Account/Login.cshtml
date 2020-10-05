@@ -1,0 +1,64 @@
+@model LoginViewModel
+
+<h1>Login</h1>
+<p>Choose how to login</p>
+
+<partial name="_ValidationSummary" />
+
+@if (Model.EnableLocalLogin)
+{
+    <div>
+        <h2>Local Account</h2>
+        <form asp-route="Login">
+            <input type="hidden" asp-for="ReturnUrl" />
+
+            <div>
+                <label asp-for="Username"></label>
+                <input placeholder="Username" asp-for="Username" autofocus>
+            </div>
+            <div>
+                <label asp-for="Password"></label>
+                <input type="password" placeholder="Password" asp-for="Password" autocomplete="off">
+            </div>
+            @if (Model.AllowRememberLogin)
+            {
+                <div>
+                    <input asp-for="RememberLogin">
+                    <label asp-for="RememberLogin">
+                        Remember My Login
+                    </label>
+                </div>
+            }
+            <button name="button" value="login">Login</button>
+            <button name="button" value="cancel">Cancel</button>
+        </form>
+    </div>
+}
+
+@if (Model.VisibleExternalProviders.Any())
+{
+    <div>
+        <h2>External Account</h2>
+        <ul>
+            @foreach (var provider in Model.VisibleExternalProviders)
+            {
+                <li>
+                    <a asp-controller="External"
+                       asp-action="Challenge"
+                       asp-route-scheme="@provider.AuthenticationScheme"
+                       asp-route-returnUrl="@Model.ReturnUrl">
+                        @provider.DisplayName
+                    </a>
+                </li>
+            }
+        </ul>
+    </div>
+}
+
+@if (!Model.EnableLocalLogin && !Model.VisibleExternalProviders.Any())
+{
+    <div>
+        <strong>Invalid login request</strong>
+        There are no login schemes configured for this request.
+    </div>
+}

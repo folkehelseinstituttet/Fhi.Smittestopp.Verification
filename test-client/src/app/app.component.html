@@ -1,0 +1,23 @@
+<h1>Fhi.Smittestopp.Verification test client</h1>
+
+<button *ngIf="!loggedIn" (click)="startLogin()">Login</button>
+
+<div *ngIf="loggedIn">
+
+  <h2>ID-token</h2>
+  <p>{{idToken}}</p>
+
+  <h2>Access token</h2>
+  <p>{{accessToken}}</p>
+
+  <h2>Granted scopes</h2>
+  <pre>{{grantedScopes|json}}</pre>
+
+  <h2>Identity claims</h2>
+  <pre>{{identityClaims|json}}</pre>
+
+  <button (click)="startLogout()">Logout</button>
+  
+</div>
+
+<router-outlet></router-outlet>

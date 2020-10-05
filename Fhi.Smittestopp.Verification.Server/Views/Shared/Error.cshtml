@@ -1,0 +1,31 @@
+@model ErrorViewModel
+
+@{
+    var error = Model?.Error?.Error;
+    var errorDescription = Model?.Error?.ErrorDescription;
+    var request_id = Model?.Error?.RequestId;
+}
+
+<h1>Error</h1>
+<div>
+    Sorry, there was an error
+
+    @if (error != null)
+    {
+        <strong>
+            <em>
+                : @error
+            </em>
+        </strong>
+
+        if (errorDescription != null)
+        {
+            <div>@errorDescription</div>
+        }
+    }
+</div>
+
+@if (request_id != null)
+{
+    <div>Request Id: @request_id</div>
+}

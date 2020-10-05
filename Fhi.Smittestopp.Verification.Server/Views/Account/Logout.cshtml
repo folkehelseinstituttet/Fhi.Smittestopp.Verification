@@ -1,0 +1,9 @@
+﻿@model LogoutViewModel
+
+<h1>Logout</h1>
+<p>Would you like to logut of Fhi.Smittestopp.Verification?</p>
+
+<form asp-action="Logout">
+    <input type="hidden" name="logoutId" value="@Model.LogoutId"  />
+    <button>Yes</button>
+</form>

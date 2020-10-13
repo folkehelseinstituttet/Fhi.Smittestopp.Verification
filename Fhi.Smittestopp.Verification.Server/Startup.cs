@@ -34,6 +34,8 @@ namespace Fhi.Smittestopp.Verification.Server
                 });
             }
 
+            services.AddHealthChecks();
+
             services.AddControllersWithViews();
 
             var builder = services.AddIdentityServer(options =>
@@ -72,6 +74,7 @@ namespace Fhi.Smittestopp.Verification.Server
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapDefaultControllerRoute();
+                endpoints.MapHealthChecks("/health");
             });
         }
     }

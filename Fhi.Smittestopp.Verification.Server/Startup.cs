@@ -1,15 +1,15 @@
-﻿using IdentityServer4;
-using Microsoft.AspNetCore.Builder;
+﻿using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.IdentityModel.Tokens;
 
 namespace Fhi.Smittestopp.Verification.Server
 {
     public class Startup
     {
+        private const string TestCorsPolicy = "test-spa-client-cors";
+
         public IWebHostEnvironment Environment { get; }
         public IConfiguration Configuration { get; }
 
@@ -21,15 +21,18 @@ namespace Fhi.Smittestopp.Verification.Server
 
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddCors(options =>
+            if (Environment.IsDevelopment())
             {
-                options.AddPolicy(name: "test-spa-client-cors",
-                    b => b
-                        .WithOrigins("http://localhost:4200")
-                        .AllowCredentials()
-                        .AllowAnyHeader()
-                        .AllowAnyMethod());
-            });
+                services.AddCors(options =>
+                {
+                    options.AddPolicy(name: TestCorsPolicy,
+                        b => b
+                            .WithOrigins("http://localhost:4200")
+                            .AllowCredentials()
+                            .AllowAnyHeader()
+                            .AllowAnyMethod());
+                });
+            }
 
             services.AddControllersWithViews();
 
@@ -40,7 +43,7 @@ namespace Fhi.Smittestopp.Verification.Server
             })
                 .AddInMemoryIdentityResources(Config.IdentityResources)
                 .AddInMemoryApiScopes(Config.ApiScopes)
-                .AddInMemoryClients(Config.Clients);
+                .AddConfiguredClients(Configuration.GetSection("clients"));
 
             services.AddAuthentication()
                 .AddIdPortenAuth(Configuration.GetSection("idPorten"));
@@ -54,13 +57,12 @@ namespace Fhi.Smittestopp.Verification.Server
             if (Environment.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
+                app.UseCors(TestCorsPolicy);
             }
 
             // uncomment if you want to add MVC
             app.UseStaticFiles();
             app.UseRouting();
-
-            app.UseCors("test-spa-client-cors");
 
             app.UseIdentityServer();
 

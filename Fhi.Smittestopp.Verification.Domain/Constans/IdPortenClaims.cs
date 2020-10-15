@@ -6,6 +6,5 @@
     public static class IdPortenClaims
     {
         public const string NationalIdentifier = "pid";
-        public static string SubjectIdentifier = "sid";
     }
 }

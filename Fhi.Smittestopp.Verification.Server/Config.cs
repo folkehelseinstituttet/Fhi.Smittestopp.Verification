@@ -64,7 +64,8 @@ namespace Fhi.Smittestopp.Verification.Server
                 AllowedScopes = clientConfig.AllowedScopes,
                 RedirectUris = clientConfig.RedirectUris,
                 RequireConsent = clientConfig.RequireConsent,
-                AllowedCorsOrigins = clientConfig.CorsOrigins
+                AllowedCorsOrigins = clientConfig.CorsOrigins,
+                AlwaysIncludeUserClaimsInIdToken = true
             };
         }
     }
@@ -96,7 +97,7 @@ namespace Fhi.Smittestopp.Verification.Server
                         NameClaimType = "name",
                         RoleClaimType = "role"
                     };
-                }); ;
+                });
         }
 
         public static IIdentityServerBuilder AddConfiguredClients(this IIdentityServerBuilder builder, IConfiguration config)

@@ -7,7 +7,12 @@
   
   <ItemGroup>
     <PackageReference Include="IdentityServer4" Version="4.1.0" />
-
     <PackageReference Include="Serilog.AspNetCore" Version="3.4.0" />
+    <PackageReference Include="MediatR.Extensions.Microsoft.DependencyInjection" Version="9.0.0" />
+  </ItemGroup>
+  
+  <ItemGroup>
+    <ProjectReference Include="..\Fhi.Smittestopp.Verification.Domain\Fhi.Smittestopp.Verification.Domain.csproj" />
+    <ProjectReference Include="..\Fhi.Smittestopp.Verification.Msis\Fhi.Smittestopp.Verification.Msis.csproj" />
   </ItemGroup>
 </Project>

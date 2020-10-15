@@ -1,6 +1,7 @@
 ﻿using IdentityServer4.Models;
 using System.Collections.Generic;
 using System.Linq;
+using Fhi.Smittestopp.Verification.Domain.Constans;
 using IdentityServer4;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.Extensions.Configuration;
@@ -23,21 +24,34 @@ namespace Fhi.Smittestopp.Verification.Server
         public string[] RedirectUris { get; set; }
         public string[] AllowedScopes { get; set; }
         public string[] AllowedGrantTypes { get; set; }
+        public string[] CorsOrigins { get; set; }
         public bool RequireConsent { get; set; }
     }
 
     public static class Config
     {
         public static IEnumerable<IdentityResource> IdentityResources =>
-            new IdentityResource[]
+            new[]
             { 
-                new IdentityResources.OpenId()
+                new IdentityResources.OpenId(),
+                new IdentityResource(VerificationScopes.VerificationInfo, new []
+                {
+                    VerificationClaims.VerifiedPositive,
+                    VerificationClaims.VerifiedPositiveTestDate
+                })
             };
 
         public static IEnumerable<ApiScope> ApiScopes =>
             new []
             {
-                new ApiScope("upload-api", "Diagnosis keys upload API")
+                new ApiScope(VerificationScopes.UploadApi, "Diagnosis keys upload API")
+                {
+                    UserClaims = new []
+                    {
+                        VerificationClaims.VerifiedPositive,
+                        VerificationClaims.VerifiedPositiveTestDate
+                    }
+                }
             };
 
         public static Client CreateClientFromConfig(ClientConfig clientConfig)
@@ -47,10 +61,10 @@ namespace Fhi.Smittestopp.Verification.Server
                 ClientId = clientConfig.ClientId,
                 AllowedGrantTypes = clientConfig.AllowedGrantTypes,
                 ClientSecrets = clientConfig.ClientSecretHashes.Select(secretHash => new Secret(secretHash)).ToList(),
-                // scopes that client has access to
                 AllowedScopes = clientConfig.AllowedScopes,
                 RedirectUris = clientConfig.RedirectUris,
-                RequireConsent = clientConfig.RequireConsent
+                RequireConsent = clientConfig.RequireConsent,
+                AllowedCorsOrigins = clientConfig.CorsOrigins
             };
         }
     }
@@ -65,7 +79,7 @@ namespace Fhi.Smittestopp.Verification.Server
         public static AuthenticationBuilder AddIdPortenAuth(this AuthenticationBuilder authBuilder, IdPortenConfig config)
         {
             return authBuilder
-                .AddOpenIdConnect("idporten", "ID-porten", options =>
+                .AddOpenIdConnect(ExternalProviders.IdPorten, "ID-porten", options =>
                 {
                     options.SignInScheme = IdentityServerConstants.ExternalCookieAuthenticationScheme;
                     options.SignOutScheme = IdentityServerConstants.SignoutScheme;

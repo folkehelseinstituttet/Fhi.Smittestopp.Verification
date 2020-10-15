@@ -1,4 +1,7 @@
-﻿using Microsoft.AspNetCore.Builder;
+﻿using Fhi.Smittestopp.Verification.Domain.Users;
+using Fhi.Smittestopp.Verification.Msis;
+using MediatR;
+using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -8,8 +11,6 @@ namespace Fhi.Smittestopp.Verification.Server
 {
     public class Startup
     {
-        private const string TestCorsPolicy = "test-spa-client-cors";
-
         public IWebHostEnvironment Environment { get; }
         public IConfiguration Configuration { get; }
 
@@ -21,19 +22,6 @@ namespace Fhi.Smittestopp.Verification.Server
 
         public void ConfigureServices(IServiceCollection services)
         {
-            if (Environment.IsDevelopment())
-            {
-                services.AddCors(options =>
-                {
-                    options.AddPolicy(name: TestCorsPolicy,
-                        b => b
-                            .WithOrigins("http://localhost:4200")
-                            .AllowCredentials()
-                            .AllowAnyHeader()
-                            .AllowAnyMethod());
-                });
-            }
-
             services.AddHealthChecks();
 
             services.AddControllersWithViews();
@@ -47,6 +35,10 @@ namespace Fhi.Smittestopp.Verification.Server
                 .AddInMemoryApiScopes(Config.ApiScopes)
                 .AddConfiguredClients(Configuration.GetSection("clients"));
 
+            services.AddMediatR(typeof(CreateFromExternalAuthentication).Assembly);
+
+            services.AddMockMsisLookup();
+
             services.AddAuthentication()
                 .AddIdPortenAuth(Configuration.GetSection("idPorten"));
 
@@ -59,7 +51,6 @@ namespace Fhi.Smittestopp.Verification.Server
             if (Environment.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
-                app.UseCors(TestCorsPolicy);
             }
 
             // uncomment if you want to add MVC

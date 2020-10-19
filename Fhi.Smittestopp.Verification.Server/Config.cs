@@ -26,6 +26,7 @@ namespace Fhi.Smittestopp.Verification.Server
         public string[] AllowedGrantTypes { get; set; }
         public string[] CorsOrigins { get; set; }
         public bool RequireConsent { get; set; }
+        public bool RequireClientSecret { get; set; }
     }
 
     public static class Config
@@ -48,8 +49,7 @@ namespace Fhi.Smittestopp.Verification.Server
                 {
                     UserClaims = new []
                     {
-                        VerificationClaims.VerifiedPositive,
-                        VerificationClaims.VerifiedPositiveTestDate
+                        VerificationClaims.VerifiedPositive
                     }
                 }
             };
@@ -60,12 +60,14 @@ namespace Fhi.Smittestopp.Verification.Server
             {
                 ClientId = clientConfig.ClientId,
                 AllowedGrantTypes = clientConfig.AllowedGrantTypes,
-                ClientSecrets = clientConfig.ClientSecretHashes.Select(secretHash => new Secret(secretHash)).ToList(),
+                RequireClientSecret = clientConfig.RequireClientSecret,
+                ClientSecrets = clientConfig.ClientSecretHashes?.Select(secretHash => new Secret(secretHash)).ToList(),
                 AllowedScopes = clientConfig.AllowedScopes,
                 RedirectUris = clientConfig.RedirectUris,
                 RequireConsent = clientConfig.RequireConsent,
                 AllowedCorsOrigins = clientConfig.CorsOrigins,
-                AlwaysIncludeUserClaimsInIdToken = true
+                AlwaysIncludeUserClaimsInIdToken = true,
+                EnableLocalLogin = false
             };
         }
     }

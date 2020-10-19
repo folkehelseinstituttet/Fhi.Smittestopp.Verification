@@ -16,7 +16,6 @@ export const authConfig: AuthConfig = {
 
   // The SPA's id. The SPA is registerd with this id at the auth-server
   clientId: 'test-spa-client',
-  dummyClientSecret: 'dummy',
 
   // set the scope for the permissions the client should request
   scope: 'openid verification-info upload-api',

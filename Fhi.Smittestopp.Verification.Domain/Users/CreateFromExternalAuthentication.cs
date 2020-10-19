@@ -41,9 +41,9 @@ namespace Fhi.Smittestopp.Verification.Domain.Users
 
                 var positiveTest = await FindTestresultForExternalUser(request.Provider, request.ExternalClaims);
 
-                return positiveTest.Match(
-                    none: () => new User(request.Provider, userIdClaim.Value),
-                    some: pt => new User(request.Provider, userIdClaim.Value, pt));
+                return positiveTest.Match<User>(
+                    none: () => new NonPositiveUser(),
+                    some: pt => new PositiveUser(request.Provider, userIdClaim.Value, pt));
             }
 
             private Option<Claim> FindUserIdClaim(ICollection<Claim> claims)

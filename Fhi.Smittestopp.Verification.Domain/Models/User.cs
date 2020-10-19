@@ -6,26 +6,25 @@ using Optional;
 
 namespace Fhi.Smittestopp.Verification.Domain.Models
 {
-    public class User
+    public abstract class User
     {
-        public string Id { get; set; }
+        public string Id { get; }
         public string DisplayName => "Temporary user";
-        public bool HasVerifiedPostiveTest { get; set; }
-        public Option<DateTime> PositiveTestDate { get; set; }
-        public string ExternalProviderUserId { get; set; }
-        public string ExternalProvider { get; set; }
+        public Option<string> ExternalProviderUserId { get; }
+        public Option<string> ExternalProvider { get; }
 
-        public User(string provider, string providerUserId)
+        public abstract bool HasVerifiedPostiveTest { get; }
+        public abstract Option<DateTime> PositiveTestDate { get; }
+
+        protected User(string id)
         {
-            Id = provider + ":" + providerUserId;
-            ExternalProvider = provider;
-            ExternalProviderUserId = providerUserId;
+            Id = id;
         }
 
-        public User(string provider, string providerUserId, PositiveTestResult testresult) : this(provider, providerUserId)
+        protected User(string provider, string providerUserId) : this(provider + ":" + providerUserId)
         {
-            HasVerifiedPostiveTest = true;
-            PositiveTestDate = testresult.PositiveTestDate;
+            ExternalProvider = provider.Some();
+            ExternalProviderUserId = providerUserId.Some();
         }
 
         public IEnumerable<Claim> GetCustomClaims()

@@ -88,11 +88,14 @@ namespace Fhi.Smittestopp.Verification.Server.Controllers
                 _logger.LogDebug("External claims: {@claims}", externalClaims);
             }
 
+            var provider = result.Properties.Items["scheme"];
+            var providerClaims = result.Principal.Claims.ToList();
+
             // We create a new temporary local user for each sign in
             var user = await _mediator.Send(new CreateFromExternalAuthentication.Command
             {
-                ExternalClaims = result.Principal.Claims.ToList(),
-                Provider = result.Properties.Items["scheme"]
+                ExternalClaims = providerClaims,
+                Provider = provider
             });
 
             // this allows us to collect any additional claims or properties
@@ -106,7 +109,7 @@ namespace Fhi.Smittestopp.Verification.Server.Controllers
             var isuser = new IdentityServerUser(user.Id)
             {
                 DisplayName = user.DisplayName,
-                IdentityProvider = user.ExternalProvider,
+                IdentityProvider = provider,
                 AdditionalClaims = user.GetCustomClaims().Concat(additionalLocalClaims).ToList()
             };
 
@@ -120,7 +123,7 @@ namespace Fhi.Smittestopp.Verification.Server.Controllers
 
             // check if external login is in the context of an OIDC request
             var context = await _interaction.GetAuthorizationContextAsync(returnUrl);
-            await _events.RaiseAsync(new UserLoginSuccessEvent(isuser.IdentityProvider, user.ExternalProviderUserId, isuser.SubjectId, isuser.DisplayName, true, context?.Client.ClientId));
+            await _events.RaiseAsync(new UserLoginSuccessEvent(isuser.IdentityProvider, provider, isuser.SubjectId, isuser.DisplayName, true, context?.Client.ClientId));
 
             if (context != null)
             {

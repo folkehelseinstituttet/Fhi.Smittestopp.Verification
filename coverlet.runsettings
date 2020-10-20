@@ -5,7 +5,8 @@
       <DataCollector friendlyName="XPlat Code Coverage">
         <Configuration>
           <Format>lcov</Format>
-          <Exclude>[IdentityServerHost.Quickstart.UI]*,[*]Mock*</Exclude>
+          <Exclude>[*]Mock*</Exclude>
+          <ExcludeByFile>**/*.cshtml,**/Quickstart/**/*.cs</ExcludeByFile>
         </Configuration>
       </DataCollector>
     </DataCollectors>

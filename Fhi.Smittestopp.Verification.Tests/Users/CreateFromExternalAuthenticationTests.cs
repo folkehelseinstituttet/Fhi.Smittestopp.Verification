@@ -20,9 +20,17 @@ namespace Fhi.Smittestopp.Verification.Tests.Users
     public class CreateFromExternalAuthenticationTests
     {
         [Test]
-        public void Handle_GivenNoIdClaim_ThrowsException()
+        public void Handle_GivenVerifiedPostiveButNoPseudonymIdClaim_ThrowsException()
         {
             var automocker = new AutoMocker();
+
+            automocker
+                .Setup<IMsisLookupService, Task<Option<PositiveTestResult>>>(x =>
+                    x.FindPositiveTestResult("01019098765"))
+                .ReturnsAsync(new PositiveTestResult
+                {
+                    PositiveTestDate = DateTime.Today.AddDays(-7).Some()
+                }.Some);
 
             var target = automocker.CreateInstance<CreateFromExternalAuthentication.Handler>();
 
@@ -31,7 +39,8 @@ namespace Fhi.Smittestopp.Verification.Tests.Users
                 Provider = ExternalProviders.IdPorten,
                 ExternalClaims = new List<Claim>
                 {
-                    new Claim("not-sub-id-claim", "not a sub-id")
+                    new Claim("not-sub-id-claim", "not a sub-id"),
+                    new Claim(IdPortenClaims.NationalIdentifier, "01019098765")
                 }
             }, new CancellationToken()));
         }

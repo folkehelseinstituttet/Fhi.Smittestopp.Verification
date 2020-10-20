@@ -2,7 +2,6 @@
 {
     public static class VerificationClaims
     {
-        public const string VerifiedPositive = "vp";
         public const string VerifiedPositiveTestDate = "vptd";
     }
 }

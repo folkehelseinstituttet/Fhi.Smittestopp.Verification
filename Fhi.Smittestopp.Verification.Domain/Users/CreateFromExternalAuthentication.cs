@@ -36,14 +36,22 @@ namespace Fhi.Smittestopp.Verification.Domain.Users
 
             public async Task<User> Handle(Command request, CancellationToken cancellationToken)
             {
-                var userIdClaim = FindUserIdClaim(request.ExternalClaims).ValueOr(() =>
-                    throw new Exception("Unable to determine user-ID from external claims from provider: " + request.Provider));
-
                 var positiveTest = await FindTestresultForExternalUser(request.Provider, request.ExternalClaims);
 
                 return positiveTest.Match<User>(
-                    none: () => new NonPositiveUser(),
-                    some: pt => new PositiveUser(request.Provider, userIdClaim.Value, pt));
+                    none: () =>
+                    {
+                        _logger.LogInformation("Non-positive user created after ID-porten login and MSIS lookup");
+                        return new NonPositiveUser();
+                    },
+                    some: pt =>
+                    {
+                        var userIdClaim = FindUserIdClaim(request.ExternalClaims).ValueOr(() =>
+                            throw new Exception("Unable to determine user-ID from external claims from provider: " + request.Provider));
+
+                        _logger.LogInformation("Verified positive user created after ID-porten login and MSIS lookup");
+                        return new PositiveUser(request.Provider, userIdClaim.Value, pt);
+                    });
             }
 
             private Option<Claim> FindUserIdClaim(ICollection<Claim> claims)

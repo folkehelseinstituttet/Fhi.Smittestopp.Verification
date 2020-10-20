@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Fhi.Smittestopp.Verification.Domain.Constans;
+using IdentityModel;
 using IdentityServer4;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.Extensions.Configuration;
@@ -37,7 +38,7 @@ namespace Fhi.Smittestopp.Verification.Server
                 new IdentityResources.OpenId(),
                 new IdentityResource(VerificationScopes.VerificationInfo, new []
                 {
-                    VerificationClaims.VerifiedPositive,
+                    JwtClaimTypes.Role,
                     VerificationClaims.VerifiedPositiveTestDate
                 })
             };
@@ -49,7 +50,7 @@ namespace Fhi.Smittestopp.Verification.Server
                 {
                     UserClaims = new []
                     {
-                        VerificationClaims.VerifiedPositive
+                        JwtClaimTypes.Role
                     }
                 }
             };

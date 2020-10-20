@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Security.Claims;
 using Fhi.Smittestopp.Verification.Domain.Constans;
+using IdentityModel;
 using Optional;
 
 namespace Fhi.Smittestopp.Verification.Domain.Models
@@ -29,12 +30,15 @@ namespace Fhi.Smittestopp.Verification.Domain.Models
 
         public IEnumerable<Claim> GetCustomClaims()
         {
-            var claims = new List<Claim>
+            var claims = new List<Claim>();
+
+            if (HasVerifiedPostiveTest)
             {
-                new Claim(VerificationClaims.VerifiedPositive, HasVerifiedPostiveTest.ToString().ToLowerInvariant())
-            };
+                claims.Add(new Claim(JwtClaimTypes.Role, VerificationRoles.VerifiedPositive));
+            }
 
             PositiveTestDate.MatchSome(testData => claims.Add(new Claim(VerificationClaims.VerifiedPositiveTestDate, testData.ToString("yyyy-MM-dd"))));
+
             return claims;
         }
     }

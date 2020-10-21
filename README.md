@@ -3,7 +3,7 @@
 
 ## Getting startet
 
-To run this application you will need the .NET Core 3.1 SDK. You can launch the web application through the `dotnet run` command from the ´Fhi.Smittestopp.Verification.Server´ folder.
+To run this application you will need the .NET Core 3.1 SDK. You can launch the web application through the `dotnet run` command from the `Fhi.Smittestopp.Verification.Server` folder.
 
 ### ID-porten
 

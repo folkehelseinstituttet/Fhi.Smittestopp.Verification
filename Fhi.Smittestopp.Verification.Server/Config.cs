@@ -110,7 +110,7 @@ namespace Fhi.Smittestopp.Verification.Server
 
         public static IIdentityServerBuilder AddConfiguredClients(this IIdentityServerBuilder builder, IEnumerable<ClientConfig> clientConfigs)
         {
-            return builder.AddInMemoryClients(clientConfigs.Select(Config.CreateClientFromConfig));
+            return builder.AddInMemoryClients(clientConfigs?.Select(Config.CreateClientFromConfig) ?? new Client[0]);
         }
     }
 }

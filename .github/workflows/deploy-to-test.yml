@@ -24,7 +24,7 @@ jobs:
     - name: Test
       run: dotnet test --no-restore --verbosity normal
     - name: Publish
-      run: dotnet publish --configuration Release --no-build --output ../published-app
+      run: dotnet publish Fhi.Smittestopp.Verification.Server --configuration Release --no-build --output published-app
 
     # Log into Azure
     - uses: azure/login@v1
@@ -44,7 +44,7 @@ jobs:
         parameters: ./azuredeploy/app-service-deploy.parameters.test.json 
 
     # Deploy to Azure Web apps
-    - name: 'Run Azure webapp deploy action using publish profile credentials'
+    - name: 'Run Azure webapp deploy'
       uses: azure/webapps-deploy@v2
       with: 
         app-name: test-smittestopp-verification

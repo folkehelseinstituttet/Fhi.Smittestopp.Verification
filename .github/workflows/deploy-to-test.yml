@@ -1,0 +1,55 @@
+name: Deploy to test
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Setup .NET Core
+      uses: actions/setup-dotnet@v1
+      with:
+        dotnet-version: 3.1.301
+    
+    # Build, test and publish app
+    - name: Install dependencies
+      run: dotnet restore
+    - name: Build
+      run: dotnet build --configuration Release --no-restore
+    - name: Test
+      run: dotnet test --no-restore --verbosity normal
+    - name: Publish
+      run: dotnet publish --configuration Release --no-build --output ../published-app
+
+    # Log into Azure
+    - uses: azure/login@v1
+      with:
+        creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+    # Create Azure resources
+    - name: Run ARM deploy
+      id: deploy
+      uses: azure/arm-deploy@v1
+      with:
+        scope: resourcegroup
+        deploymentMode: Complete
+        resourceGroupName: ${{ secrets.AZURE_RG }}
+        subscriptionId: ${{ secrets.AZURE_SUBSCRIPTION }}
+        template: ./azuredeploy/app-service-deploy.json 
+        parameters: ./azuredeploy/app-service-deploy.parameters.test.json 
+
+    # Deploy to Azure Web apps
+    - name: 'Run Azure webapp deploy action using publish profile credentials'
+      uses: azure/webapps-deploy@v2
+      with: 
+        app-name: test-smittestopp-verification
+        package: 'published-app'
+
+    # Log out from Azure
+    - name: logout
+      run: az logout

@@ -92,11 +92,7 @@ namespace Fhi.Smittestopp.Verification.Server.Controllers
             var providerClaims = result.Principal.Claims.ToList();
 
             // We create a new temporary local user for each sign in
-            var user = await _mediator.Send(new CreateFromExternalAuthentication.Command
-            {
-                ExternalClaims = providerClaims,
-                Provider = provider
-            });
+            var user = await _mediator.Send(new CreateFromExternalAuthentication.Command(provider, providerClaims));
 
             // this allows us to collect any additional claims or properties
             // for the specific protocols used and store them in the local auth cookie.

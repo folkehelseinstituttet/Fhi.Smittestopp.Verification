@@ -1,8 +1,9 @@
 import { AuthConfig } from 'angular-oauth2-oidc';
+import { environment } from 'src/environments/environment';
 
 export const authConfig: AuthConfig = {
   // Url of the Identity Provider
-  issuer: 'https://localhost:5001',
+  issuer: environment.authIssuer,
 
   // URL of the SPA to redirect the user to after login
   // redirectUri: window.location.origin
@@ -15,7 +16,7 @@ export const authConfig: AuthConfig = {
   responseType: 'code',
 
   // The SPA's id. The SPA is registerd with this id at the auth-server
-  clientId: 'test-spa-client',
+  clientId: environment.clientId,
 
   // set the scope for the permissions the client should request
   scope: 'openid verification-info upload-api',

@@ -8,17 +8,13 @@
 @if (Model.EnableLocalLogin)
 {
     <div>
-        <h2>Local Account</h2>
+        <h2>PIN-code login</h2>
         <form asp-route="Login">
             <input type="hidden" asp-for="ReturnUrl" />
 
             <div>
-                <label asp-for="Username"></label>
-                <input placeholder="Username" asp-for="Username" autofocus>
-            </div>
-            <div>
-                <label asp-for="Password"></label>
-                <input type="password" placeholder="Password" asp-for="Password" autocomplete="off">
+                <label asp-for="PinCode"></label>
+                <input placeholder="PIN-code" asp-for="PinCode" autofocus>
             </div>
             @if (Model.AllowRememberLogin)
             {

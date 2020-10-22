@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Security.Claims;
 using System.Threading;
 using System.Threading.Tasks;
@@ -21,6 +22,12 @@ namespace Fhi.Smittestopp.Verification.Domain.Users
         {
             public ICollection<Claim> ExternalClaims { get; set; }
             public string Provider { get; set; }
+
+            public Command(string provider, IEnumerable<Claim> claims)
+            {
+                Provider = provider;
+                ExternalClaims = claims.ToList();
+            }
         }
 
         public class Handler : IRequestHandler<Command, User>

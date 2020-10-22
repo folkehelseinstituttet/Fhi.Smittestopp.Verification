@@ -35,14 +35,14 @@ namespace Fhi.Smittestopp.Verification.Tests.Users
             var target = automocker.CreateInstance<CreateFromExternalAuthentication.Handler>();
 
             Assert.ThrowsAsync<Exception>(() => target.Handle(new CreateFromExternalAuthentication.Command
-            {
-                Provider = ExternalProviders.IdPorten,
-                ExternalClaims = new List<Claim>
+            (
+                ExternalProviders.IdPorten,
+                new List<Claim>
                 {
                     new Claim("not-sub-id-claim", "not a sub-id"),
                     new Claim(IdPortenClaims.NationalIdentifier, "01019098765")
                 }
-            }, new CancellationToken()));
+            ), new CancellationToken()));
         }
 
         [TestCase(JwtClaimTypes.Subject)]
@@ -59,14 +59,14 @@ namespace Fhi.Smittestopp.Verification.Tests.Users
             var target = automocker.CreateInstance<CreateFromExternalAuthentication.Handler>();
 
             var result = await target.Handle(new CreateFromExternalAuthentication.Command
-            {
-                Provider = ExternalProviders.IdPorten,
-                ExternalClaims = new List<Claim>
+            (
+                ExternalProviders.IdPorten,
+                new List<Claim>
                 {
                     new Claim(idClaimType, "pseudo-id-123"),
                     new Claim(IdPortenClaims.NationalIdentifier, "01019098765")
                 }
-            }, new CancellationToken());
+            ), new CancellationToken());
 
             result.HasVerifiedPostiveTest.Should().BeFalse();
             result.Id.Should().NotContain("pseudo-id-123");
@@ -91,14 +91,14 @@ namespace Fhi.Smittestopp.Verification.Tests.Users
             var target = automocker.CreateInstance<CreateFromExternalAuthentication.Handler>();
 
             var result = await target.Handle(new CreateFromExternalAuthentication.Command
-            {
-                Provider = ExternalProviders.IdPorten,
-                ExternalClaims = new List<Claim>
+            (
+                ExternalProviders.IdPorten,
+                new List<Claim>
                 {
                     new Claim(idClaimType, "pseudo-id-123"),
                     new Claim(IdPortenClaims.NationalIdentifier, "01019098765")
                 }
-            }, new CancellationToken());
+            ), new CancellationToken());
 
             result.HasVerifiedPostiveTest.Should().BeTrue();
             result.Id.Should().Be(ExternalProviders.IdPorten + ":pseudo-id-123");

@@ -4,6 +4,16 @@ on:
   push:
     branches: [ main ]
 
+env:
+  DOTNET_VERSION: 3.1.301
+  FX_VERSION: DOTNETCORE|3.1
+  AZURE_CREDS: ${{ secrets.AZURE_CREDENTIALS_TEST }}
+  AZURE_RG: ${{ secrets.AZURE_RG_TEST }}
+  AZURE_SUB: ${{ secrets.AZURE_SUBSCRIPTION_TEST }}
+  APP_NAME: test-smittestopp-verification
+  DOTNET_ENV: Test
+  ID_PORTEN_CLIENT_SECRET: ${{ secrets.ID_PORTEN_CLIENT_SECRET_TEST }}
+
 jobs:
   build:
 
@@ -14,7 +24,7 @@ jobs:
     - name: Setup .NET Core
       uses: actions/setup-dotnet@v1
       with:
-        dotnet-version: 3.1.301
+        dotnet-version: ${{ env.DOTNET_VERSION }}
     
     # Build, test and publish app
     - name: Install dependencies
@@ -29,7 +39,7 @@ jobs:
     # Log into Azure
     - uses: azure/login@v1
       with:
-        creds: ${{ secrets.AZURE_CREDENTIALS }}
+        creds: ${{ env.AZURE_CREDS }}
 
     # Create Azure resources
     - name: Run ARM deploy
@@ -38,16 +48,16 @@ jobs:
       with:
         scope: resourcegroup
         deploymentMode: Complete
-        resourceGroupName: ${{ secrets.AZURE_RG }}
-        subscriptionId: ${{ secrets.AZURE_SUBSCRIPTION }}
+        resourceGroupName: ${{ env.AZURE_RG }}
+        subscriptionId: ${{ env.AZURE_SUB }}
         template: ./azuredeploy/app-service-deploy.json 
-        parameters: ./azuredeploy/app-service-deploy.parameters.test.json 
+        parameters: appName=${{ env.APP_NAME }} environmentName=${{ env.DOTNET_ENV }} idPortenClientSecret=${{ env.ID_PORTEN_CLIENT_SECRET }} linuxFxVersion=${{ env.FX_VERSION }}
 
     # Deploy to Azure Web apps
     - name: 'Run Azure webapp deploy'
       uses: azure/webapps-deploy@v2
       with: 
-        app-name: test-smittestopp-verification
+        app-name: ${{ env.APP_NAME }}
         package: 'published-app'
 
     # Log out from Azure

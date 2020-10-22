@@ -11,9 +11,9 @@ To perform logins through ID-porten (Test environment) you will also need a regi
 
 Run the following command from the `Fhi.Smittestopp.Verification.Server` folder to use your own client.
 
-`dotnet user-secrets set "idporten:clientId" "<your-client-id>"`
+`dotnet user-secrets set "idPorten:clientId" "<your-client-id>"`
 
-`dotnet user-secrets set "idporten:clientSecret" "<your-client-secret>"`
+`dotnet user-secrets set "idPorten:clientSecret" "<your-client-secret>"`
 
 ### Test client
 

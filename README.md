@@ -1,5 +1,5 @@
 # Fhi.Smittestopp.Verification
-[![Coverage Status](https://coveralls.io/repos/github/folkehelseinstituttet/Fhi.Smittestopp.Verification/badge.svg?branch=main)](https://coveralls.io/github/folkehelseinstituttet/Fhi.Smittestopp.Verification?branch=main) [![License: MIT](https://img.shields.io/badge/License-MIT-brightgreen.svg)](LICENSE)
+![Build and test](https://github.com/folkehelseinstituttet/Fhi.Smittestopp.Verification/workflows/Build%20and%20test/badge.svg) [![Coverage Status](https://coveralls.io/repos/github/folkehelseinstituttet/Fhi.Smittestopp.Verification/badge.svg?branch=main)](https://coveralls.io/github/folkehelseinstituttet/Fhi.Smittestopp.Verification?branch=main) [![License: MIT](https://img.shields.io/badge/License-MIT-brightgreen.svg)](LICENSE)
 
 ## Getting startet
 

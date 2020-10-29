@@ -1,0 +1,65 @@
+name: Deploy to test
+
+on:
+  push:
+    branches: [ main ]
+
+env:
+  DOTNET_VERSION: 3.1.301
+  FX_VERSION: DOTNETCORE|3.1
+  AZURE_CREDS: ${{ secrets.AZURE_CREDENTIALS_TEST }}
+  AZURE_RG: ${{ secrets.AZURE_RG_TEST }}
+  AZURE_SUB: ${{ secrets.AZURE_SUBSCRIPTION_TEST }}
+  APP_NAME: test-smittestopp-verification
+  DOTNET_ENV: Test
+  ID_PORTEN_CLIENT_SECRET: ${{ secrets.ID_PORTEN_CLIENT_SECRET_TEST }}
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Setup .NET Core
+      uses: actions/setup-dotnet@v1
+      with:
+        dotnet-version: ${{ env.DOTNET_VERSION }}
+    
+    # Build, test and publish app
+    - name: Install dependencies
+      run: dotnet restore
+    - name: Build
+      run: dotnet build --configuration Release --no-restore
+    - name: Test
+      run: dotnet test --no-restore --verbosity normal
+    - name: Publish
+      run: dotnet publish Fhi.Smittestopp.Verification.Server --configuration Release --no-build --output published-app
+
+    # Log into Azure
+    - uses: azure/login@v1
+      with:
+        creds: ${{ env.AZURE_CREDS }}
+
+    # Create Azure resources
+    - name: Run ARM deploy
+      id: deploy
+      uses: azure/arm-deploy@v1
+      with:
+        scope: resourcegroup
+        deploymentMode: Complete
+        resourceGroupName: ${{ env.AZURE_RG }}
+        subscriptionId: ${{ env.AZURE_SUB }}
+        template: ./azuredeploy/app-service-deploy.json 
+        parameters: appName=${{ env.APP_NAME }} environmentName=${{ env.DOTNET_ENV }} idPortenClientSecret=${{ env.ID_PORTEN_CLIENT_SECRET }} linuxFxVersion=${{ env.FX_VERSION }}
+
+    # Deploy to Azure Web apps
+    - name: 'Run Azure webapp deploy'
+      uses: azure/webapps-deploy@v2
+      with: 
+        app-name: ${{ env.APP_NAME }}
+        package: 'published-app'
+
+    # Log out from Azure
+    - name: logout
+      run: az logout

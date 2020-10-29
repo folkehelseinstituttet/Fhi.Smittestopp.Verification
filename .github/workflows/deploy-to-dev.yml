@@ -11,6 +11,7 @@ env:
   AZURE_RG: ${{ secrets.AZURE_RG_DEV }}
   AZURE_SUB: ${{ secrets.AZURE_SUBSCRIPTION_DEV }}
   APP_NAME: dev-smittestopp-verification
+  APP_SERVICE_SKU: D1
   DOTNET_ENV: Test
   ID_PORTEN_CLIENT_SECRET: ${{ secrets.ID_PORTEN_CLIENT_SECRET_DEV }}
 
@@ -51,7 +52,7 @@ jobs:
         resourceGroupName: ${{ env.AZURE_RG }}
         subscriptionId: ${{ env.AZURE_SUB }}
         template: ./azuredeploy/app-service-deploy.json 
-        parameters: appName=${{ env.APP_NAME }} environmentName=${{ env.DOTNET_ENV }} idPortenClientSecret=${{ env.ID_PORTEN_CLIENT_SECRET }} linuxFxVersion=${{ env.FX_VERSION }}
+        parameters: appName=${{ env.APP_NAME }} environmentName=${{ env.DOTNET_ENV }} idPortenClientSecret=${{ env.ID_PORTEN_CLIENT_SECRET }} linuxFxVersion=${{ env.FX_VERSION }} sku=${{ env.APP_SERVICE_SKU }}
 
     # Deploy to Azure Web apps
     - name: 'Run Azure webapp deploy'

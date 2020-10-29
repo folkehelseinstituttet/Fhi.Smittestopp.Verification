@@ -5,6 +5,7 @@
     "ng": "ng",
     "start": "ng serve",
     "startTest": "ng serve -c test",
+    "startExtDev": "ng serve -c extdev",
     "build": "ng build",
     "test": "ng test",
     "lint": "ng lint",

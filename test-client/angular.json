@@ -68,6 +68,14 @@
                   "with": "src/environments/environment.test.ts"
                 }
               ]
+            },
+            "extdev": {
+              "fileReplacements": [
+                {
+                  "replace": "src/environments/environment.ts",
+                  "with": "src/environments/environment.extdev.ts"
+                }
+              ]
             }
           }
         },
@@ -82,6 +90,9 @@
             },
             "test": {
               "browserTarget": "test-client:build:test"
+            },
+            "extdev": {
+              "browserTarget": "test-client:build:extdev"
             }
           }
         },

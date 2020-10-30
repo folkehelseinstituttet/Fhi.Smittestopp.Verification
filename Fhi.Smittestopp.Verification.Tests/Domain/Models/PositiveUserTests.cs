@@ -8,7 +8,7 @@ using Moq;
 using NUnit.Framework;
 using Optional;
 
-namespace Fhi.Smittestopp.Verification.Tests.Models
+namespace Fhi.Smittestopp.Verification.Tests.Domain.Models
 {
     [TestFixture]
     public class PositiveUserTests

@@ -4,7 +4,7 @@ using FluentAssertions;
 using Microsoft.AspNetCore.Mvc.Testing;
 using NUnit.Framework;
 
-namespace Fhi.Smittestopp.Verification.Tests
+namespace Fhi.Smittestopp.Verification.Tests.Server
 {
     [TestFixture]
     public class ServerSetupTests

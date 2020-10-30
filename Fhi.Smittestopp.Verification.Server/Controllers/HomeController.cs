@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using System.Threading.Tasks;
+using Fhi.Smittestopp.Verification.Server;
 
 namespace IdentityServerHost.Quickstart.UI
 {

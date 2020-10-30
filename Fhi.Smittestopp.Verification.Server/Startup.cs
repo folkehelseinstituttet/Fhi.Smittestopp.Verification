@@ -2,9 +2,11 @@
 using Fhi.Smittestopp.Verification.Domain.Users;
 using Fhi.Smittestopp.Verification.Msis;
 using Fhi.Smittestopp.Verification.Persistence;
+using Fhi.Smittestopp.Verification.Server.Account;
 using MediatR;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -26,6 +28,8 @@ namespace Fhi.Smittestopp.Verification.Server
         {
             services.AddHealthChecks();
 
+            services.AddSingleton<IActionContextAccessor, ActionContextAccessor>();
+
             services.AddControllersWithViews();
 
             var builder = services.AddIdentityServer(options =>
@@ -38,6 +42,8 @@ namespace Fhi.Smittestopp.Verification.Server
                 .AddConfiguredClients(Configuration.GetSection("clients"));
 
             services.AddMediatR(typeof(CreateFromExternalAuthentication).Assembly);
+
+            services.AddTransient<IAccountService, AccountService>();
 
             services.AddDomainServices(Configuration.GetSection("common"));
             services.AddMockMsisLookup();

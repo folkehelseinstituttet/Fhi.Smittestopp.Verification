@@ -1,9 +1,13 @@
 using System;
+using Fhi.Smittestopp.Verification.Server.Account.ViewModels;
 using IdentityServer4.Models;
 using Microsoft.AspNetCore.Mvc;
 
-namespace IdentityServerHost.Quickstart.UI
+namespace Fhi.Smittestopp.Verification.Server
 {
+    /// <summary>
+    /// Extensions taken from the Identity Server Quickstart
+    /// </summary>
     public static class Extensions
     {
         /// <summary>

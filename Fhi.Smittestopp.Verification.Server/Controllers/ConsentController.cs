@@ -14,6 +14,7 @@ using System.Threading.Tasks;
 using IdentityServer4.Validation;
 using System.Collections.Generic;
 using System;
+using Fhi.Smittestopp.Verification.Server;
 
 namespace IdentityServerHost.Quickstart.UI
 {

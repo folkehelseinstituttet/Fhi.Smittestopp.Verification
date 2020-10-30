@@ -14,7 +14,7 @@ using Moq.AutoMock;
 using NUnit.Framework;
 using Optional;
 
-namespace Fhi.Smittestopp.Verification.Tests.Users
+namespace Fhi.Smittestopp.Verification.Tests.Domain.Users
 {
     [TestFixture]
     public class CreateFromExternalAuthenticationTests

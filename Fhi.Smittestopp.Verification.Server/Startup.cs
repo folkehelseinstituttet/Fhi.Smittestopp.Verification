@@ -1,5 +1,7 @@
-﻿using Fhi.Smittestopp.Verification.Domain.Users;
+﻿using Fhi.Smittestopp.Verification.Domain;
+using Fhi.Smittestopp.Verification.Domain.Users;
 using Fhi.Smittestopp.Verification.Msis;
+using Fhi.Smittestopp.Verification.Persistence;
 using MediatR;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -37,7 +39,9 @@ namespace Fhi.Smittestopp.Verification.Server
 
             services.AddMediatR(typeof(CreateFromExternalAuthentication).Assembly);
 
+            services.AddDomainServices(Configuration.GetSection("common"));
             services.AddMockMsisLookup();
+            services.AddMockPersistence();
 
             services.AddAuthentication()
                 .AddIdPortenAuth(Configuration.GetSection("idPorten"));

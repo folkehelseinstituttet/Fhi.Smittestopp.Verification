@@ -1,4 +1,4 @@
-﻿using System;
+﻿using Fhi.Smittestopp.Verification.Domain.Constans;
 using Fhi.Smittestopp.Verification.Domain.Models;
 using FluentAssertions;
 using NUnit.Framework;
@@ -13,8 +13,7 @@ namespace Fhi.Smittestopp.Verification.Tests.Models
         {
             var target = new NonPositiveUser();
 
-            Guid.TryParse(target.Id, out var id).Should().BeTrue();
-            id.Should().NotBe(Guid.Empty);
+            target.Id.Should().NotBeEmpty();
         }
 
         [Test]
@@ -26,11 +25,11 @@ namespace Fhi.Smittestopp.Verification.Tests.Models
         }
 
         [Test]
-        public void GetCustomClaims_ForNonPositiveUser_ShouldBeEmpty()
+        public void GetCustomClaims_ForNonPositiveUser_ShouldContainNegativeClaim()
         {
             var target = new NonPositiveUser();
 
-            target.GetCustomClaims().Should().BeEmpty();
+            target.GetCustomClaims().Should().Contain(c => c.Type == DkSmittestopClaims.Covid19Status && c.Value == DkSmittestopClaims.StatusValues.Negative);
         }
     }
 }

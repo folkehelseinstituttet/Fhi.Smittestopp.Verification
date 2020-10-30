@@ -28,6 +28,7 @@ namespace Fhi.Smittestopp.Verification.Server
         public string[] CorsOrigins { get; set; }
         public bool RequireConsent { get; set; }
         public bool RequireClientSecret { get; set; }
+        public bool RequirePkce { get; set; }
     }
 
     public static class Config
@@ -52,6 +53,18 @@ namespace Fhi.Smittestopp.Verification.Server
                     {
                         JwtClaimTypes.Role
                     }
+                },
+                new ApiScope(VerificationScopes.DkSmittestop, "Diagnosis keys upload API")
+                {
+                    UserClaims = new []
+                    {
+                        DkSmittestopClaims.Covid19Status,
+                        DkSmittestopClaims.Covid19Blocked,
+                        DkSmittestopClaims.Covid19InfectionStart,
+                        DkSmittestopClaims.Covid19InfectionEnd,
+                        DkSmittestopClaims.Covid19LimitCount,
+                        DkSmittestopClaims.Covid19LimitDuration,
+                    }
                 }
             };
 
@@ -64,9 +77,10 @@ namespace Fhi.Smittestopp.Verification.Server
                 RequireClientSecret = clientConfig.RequireClientSecret,
                 ClientSecrets = clientConfig.ClientSecretHashes?.Select(secretHash => new Secret(secretHash)).ToList(),
                 AllowedScopes = clientConfig.AllowedScopes,
-                RedirectUris = clientConfig.RedirectUris,
+                RedirectUris = clientConfig.RedirectUris ?? new string[0],
                 RequireConsent = clientConfig.RequireConsent,
-                AllowedCorsOrigins = clientConfig.CorsOrigins,
+                AllowedCorsOrigins = clientConfig.CorsOrigins ?? new string[0],
+                RequirePkce = clientConfig.RequirePkce,
                 AlwaysIncludeUserClaimsInIdToken = true,
                 EnableLocalLogin = false
             };

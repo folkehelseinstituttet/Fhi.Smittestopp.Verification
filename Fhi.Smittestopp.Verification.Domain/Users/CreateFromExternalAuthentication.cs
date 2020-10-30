@@ -34,31 +34,56 @@ namespace Fhi.Smittestopp.Verification.Domain.Users
         {
             private readonly IMsisLookupService _msisLookupService;
             private readonly ILogger<CreateFromExternalAuthentication> _logger;
+            private readonly IVerificationLimit _verificationLimit;
+            private readonly IVerificationRecordsRepository _verificationRecordsRepository;
+            private readonly IPseudonymFactory _pseudonymFactory;
 
-            public Handler(IMsisLookupService msisLookupService, ILogger<CreateFromExternalAuthentication> logger)
+            public Handler(IMsisLookupService msisLookupService,
+                ILogger<CreateFromExternalAuthentication> logger,
+                IVerificationLimit verificationLimit,
+                IVerificationRecordsRepository verificationRecordsRepository,
+                IPseudonymFactory pseudonymFactory)
             {
                 _msisLookupService = msisLookupService;
                 _logger = logger;
+                _verificationLimit = verificationLimit;
+                _verificationRecordsRepository = verificationRecordsRepository;
+                _pseudonymFactory = pseudonymFactory;
             }
 
             public async Task<User> Handle(Command request, CancellationToken cancellationToken)
             {
                 var positiveTest = await FindTestresultForExternalUser(request.Provider, request.ExternalClaims);
 
-                return positiveTest.Match<User>(
-                    none: () =>
-                    {
-                        _logger.LogInformation("Non-positive user created after ID-porten login and MSIS lookup");
-                        return new NonPositiveUser();
-                    },
-                    some: pt =>
-                    {
-                        var userIdClaim = FindUserIdClaim(request.ExternalClaims).ValueOr(() =>
-                            throw new Exception("Unable to determine user-ID from external claims from provider: " + request.Provider));
+                return await positiveTest.MatchAsync(
+                    none: CreateNonPositiveUser,
+                    some: pt => CreatePositiveUser(pt, request));
+            }
 
-                        _logger.LogInformation("Verified positive user created after ID-porten login and MSIS lookup");
-                        return new PositiveUser(request.Provider, userIdClaim.Value, pt);
-                    });
+            private Task<User> CreateNonPositiveUser()
+            {
+                _logger.LogInformation("Creating non-positive user after ID-porten login and MSIS lookup");
+                return Task.FromResult<User>(new NonPositiveUser());
+            }
+
+            private async Task<User> CreatePositiveUser(PositiveTestResult testResult, Command request)
+            {
+                var userIdClaim = FindUserIdClaim(request.ExternalClaims).ValueOr(() =>
+                    throw new Exception("Unable to determine user-ID from external claims from provider: " + request.Provider));
+
+                var pseudonym = _pseudonymFactory.Create(request.Provider + ":" + userIdClaim.Value);
+                var existingRecords =
+                    await _verificationRecordsRepository.RetrieveRecordsForPseudonym(pseudonym);
+                var newRecord = new VerificationRecord(pseudonym);
+
+                var verificationRecords = existingRecords.Concat(new[] { newRecord });
+
+                _logger.LogInformation("Verified positive user created after ID-porten login and MSIS lookup");
+                var postiveUser = new PositiveUser(request.Provider, userIdClaim.Value, testResult, verificationRecords, _verificationLimit);
+
+                await _verificationRecordsRepository.SaveNewRecord(newRecord);
+
+                return postiveUser;
             }
 
             private Option<Claim> FindUserIdClaim(ICollection<Claim> claims)

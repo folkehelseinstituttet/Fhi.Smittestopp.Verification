@@ -102,7 +102,7 @@ namespace Fhi.Smittestopp.Verification.Server.Controllers
             ProcessLoginCallback(result, additionalLocalClaims, localSignInProps);
             
             // issue authentication cookie for user
-            var isuser = new IdentityServerUser(user.Id)
+            var isuser = new IdentityServerUser(user.Id.ToString())
             {
                 DisplayName = user.DisplayName,
                 IdentityProvider = provider,

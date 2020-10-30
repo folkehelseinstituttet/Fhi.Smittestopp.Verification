@@ -123,7 +123,7 @@ namespace Fhi.Smittestopp.Verification.Server.Controllers
                 },
                 some: async pinUser =>
                 {
-                    await _events.RaiseAsync(new UserLoginSuccessEvent(pinUser.Id, pinUser.Id, pinUser.DisplayName,
+                    await _events.RaiseAsync(new UserLoginSuccessEvent(pinUser.Id.ToString(), pinUser.Id.ToString(), pinUser.DisplayName,
                         clientId: context?.Client.ClientId));
 
                     // only set explicit expiration here if user chooses "remember me". 
@@ -139,7 +139,7 @@ namespace Fhi.Smittestopp.Verification.Server.Controllers
                     }
 
                     // issue authentication cookie with subject ID and username
-                    var isuser = new IdentityServerUser(pinUser.Id)
+                    var isuser = new IdentityServerUser(pinUser.Id.ToString())
                     {
                         DisplayName = pinUser.DisplayName
                     };

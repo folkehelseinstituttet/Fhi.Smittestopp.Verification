@@ -69,7 +69,7 @@ namespace Fhi.Smittestopp.Verification.Tests.Users
             ), new CancellationToken());
 
             result.HasVerifiedPostiveTest.Should().BeFalse();
-            result.Id.Should().NotContain("pseudo-id-123");
+            result.Id.Should().NotBeEmpty();
             result.PositiveTestDate.Should().Be(Option.None<DateTime>());
             automocker.VerifyAll();
         }
@@ -101,7 +101,7 @@ namespace Fhi.Smittestopp.Verification.Tests.Users
             ), new CancellationToken());
 
             result.HasVerifiedPostiveTest.Should().BeTrue();
-            result.Id.Should().Be(ExternalProviders.IdPorten + ":pseudo-id-123");
+            result.Id.Should().NotBeEmpty();
             result.PositiveTestDate.Should().Be(DateTime.Today.AddDays(-7).Some());
             automocker.VerifyAll();
         }

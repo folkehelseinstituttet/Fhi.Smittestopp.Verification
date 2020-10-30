@@ -11,7 +11,7 @@ env:
   AZURE_RG: ${{ secrets.AZURE_RG_DEV }}
   AZURE_SUB: ${{ secrets.AZURE_SUBSCRIPTION_DEV }}
   APP_NAME: dev-smittestopp-verification
-  APP_SERVICE_SKU: D1
+  APP_SERVICE_SKU: B1
   DOTNET_ENV: Test
   ID_PORTEN_CLIENT_SECRET: ${{ secrets.ID_PORTEN_CLIENT_SECRET_DEV }}
 

@@ -69,7 +69,7 @@ namespace Fhi.Smittestopp.Verification.Tests.Users
             ), new CancellationToken());
 
             result.HasVerifiedPostiveTest.Should().BeFalse();
-            result.Id.Should().NotContain("pseudo-id-123");
+            result.Id.Should().NotBeEmpty();
             result.PositiveTestDate.Should().Be(Option.None<DateTime>());
             automocker.VerifyAll();
         }

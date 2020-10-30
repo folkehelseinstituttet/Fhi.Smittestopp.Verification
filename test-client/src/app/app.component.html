@@ -1,8 +1,15 @@
 <h1>Fhi.Smittestopp.Verification test client</h1>
 
-<button *ngIf="!loggedIn" (click)="startLogin()">Login</button>
+<div *ngIf="!initialised">
+  <button (click)="initDefaultMode()">Init (default)</button>
+  <button (click)="initDkCompatibleMode()">Init (DK-compatible)</button>
+</div>
 
-<div *ngIf="loggedIn">
+<div *ngIf="initialised && !loggedIn">
+  <button (click)="startLogin()">Login</button>
+</div>
+
+<div *ngIf="initialised && loggedIn">
 
   <h2>ID-token</h2>
   <p>{{idToken}}</p>

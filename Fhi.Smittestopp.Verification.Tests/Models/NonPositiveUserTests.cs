@@ -1,5 +1,4 @@
-﻿using System;
-using Fhi.Smittestopp.Verification.Domain.Models;
+﻿using Fhi.Smittestopp.Verification.Domain.Models;
 using FluentAssertions;
 using NUnit.Framework;
 
@@ -13,8 +12,7 @@ namespace Fhi.Smittestopp.Verification.Tests.Models
         {
             var target = new NonPositiveUser();
 
-            Guid.TryParse(target.Id, out var id).Should().BeTrue();
-            id.Should().NotBe(Guid.Empty);
+            target.Id.Should().NotBeEmpty();
         }
 
         [Test]

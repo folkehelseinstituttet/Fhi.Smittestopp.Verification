@@ -14,5 +14,6 @@
   <ItemGroup>
     <ProjectReference Include="..\Fhi.Smittestopp.Verification.Domain\Fhi.Smittestopp.Verification.Domain.csproj" />
     <ProjectReference Include="..\Fhi.Smittestopp.Verification.Msis\Fhi.Smittestopp.Verification.Msis.csproj" />
+    <ProjectReference Include="..\Fhi.Smittestopp.Verification.Persistence\Fhi.Smittestopp.Verification.Persistence.csproj" />
   </ItemGroup>
 </Project>

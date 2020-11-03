@@ -1,4 +1,4 @@
-@model LoginViewModel
+@model Fhi.Smittestopp.Verification.Server.Account.ViewModels.LoginViewModel
 
 <h1>Login</h1>
 <p>Choose how to login</p>
@@ -16,16 +16,10 @@
                 <label asp-for="PinCode"></label>
                 <input placeholder="PIN-code" asp-for="PinCode" autofocus>
             </div>
-            @if (Model.AllowRememberLogin)
-            {
-                <div>
-                    <input asp-for="RememberLogin">
-                    <label asp-for="RememberLogin">
-                        Remember My Login
-                    </label>
-                </div>
-            }
             <button name="button" value="login">Login</button>
+        </form>
+        <form asp-route="Cancel">
+            <input type="hidden" asp-for="ReturnUrl" />
             <button name="button" value="cancel">Cancel</button>
         </form>
     </div>

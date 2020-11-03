@@ -3,7 +3,7 @@ using Fhi.Smittestopp.Verification.Domain.Models;
 using FluentAssertions;
 using NUnit.Framework;
 
-namespace Fhi.Smittestopp.Verification.Tests.Models
+namespace Fhi.Smittestopp.Verification.Tests.Domain.Models
 {
     [TestFixture]
     public class NonPositiveUserTests

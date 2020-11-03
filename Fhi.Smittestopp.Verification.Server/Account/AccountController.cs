@@ -120,7 +120,7 @@ namespace Fhi.Smittestopp.Verification.Server.Account
             // get logout options for logout request
             var logoutOptions = await _accountService.GetLogoutOptions(logoutId, User.SomeNotNull());
 
-            if (logoutOptions.ShowLogoutPrompt == false)
+            if (!logoutOptions.ShowLogoutPrompt)
             {
                 // if the request for logout was properly authenticated from IdentityServer, then
                 // we don't need to show the prompt and can just log the user out directly.

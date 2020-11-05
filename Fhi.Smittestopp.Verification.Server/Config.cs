@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Fhi.Smittestopp.Verification.Domain.Constans;
+using Fhi.Smittestopp.Verification.Domain.Constants;
 using IdentityModel;
 using IdentityServer4;
 using Microsoft.AspNetCore.Authentication;

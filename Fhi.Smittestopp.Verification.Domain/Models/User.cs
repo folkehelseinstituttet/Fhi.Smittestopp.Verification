@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Security.Claims;
 using Fhi.Smittestopp.Verification.Domain.Constans;
+using Fhi.Smittestopp.Verification.Domain.Constants;
 using Fhi.Smittestopp.Verification.Domain.Interfaces;
 using IdentityModel;
 using Optional;

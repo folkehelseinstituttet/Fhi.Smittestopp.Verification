@@ -1,4 +1,5 @@
 ﻿using Fhi.Smittestopp.Verification.Domain.Constans;
+using Fhi.Smittestopp.Verification.Domain.Constants;
 using Fhi.Smittestopp.Verification.Domain.Models;
 using FluentAssertions;
 using NUnit.Framework;

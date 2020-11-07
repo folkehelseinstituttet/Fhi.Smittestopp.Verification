@@ -76,7 +76,7 @@ namespace Fhi.Smittestopp.Verification.Server.Account
                 },
                 some: async loginResult =>
                 {
-                    await HttpContext.SignInAsync(loginResult.IsUser);
+                    await HttpContext.SignInAsync(loginResult.IsUser, new AuthenticationProperties { IsPersistent = false });
 
                     // Return to trusted url, or just return to the home page
                     var trustedReturnUrl = loginResult.TrustedReturnUrl.ValueOr("~/");

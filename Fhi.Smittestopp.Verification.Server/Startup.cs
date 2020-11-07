@@ -32,14 +32,19 @@ namespace Fhi.Smittestopp.Verification.Server
 
             services.AddControllersWithViews();
 
-            var builder = services.AddIdentityServer(options =>
-            {
-                // see https://identityserver4.readthedocs.io/en/latest/topics/resources.html
-                options.EmitStaticAudienceClaim = true;
-            })
+            services.AddMemoryCache();
+
+            services.AddCertLocator(Configuration.GetSection("certificates"));
+
+            services.AddIdentityServer(options =>
+                {
+                    // see https://identityserver4.readthedocs.io/en/latest/topics/resources.html
+                    options.EmitStaticAudienceClaim = true;
+                })
                 .AddInMemoryIdentityResources(Config.IdentityResources)
                 .AddInMemoryApiScopes(Config.ApiScopes)
-                .AddConfiguredClients(Configuration.GetSection("clients"));
+                .AddConfiguredClients(Configuration.GetSection("clients"))
+                .AddSigningCredentialFromConfig(Configuration.GetSection("signingCredentials"));
 
             services.AddMediatR(typeof(CreateFromExternalAuthentication).Assembly);
 
@@ -51,9 +56,6 @@ namespace Fhi.Smittestopp.Verification.Server
 
             services.AddAuthentication()
                 .AddIdPortenAuth(Configuration.GetSection("idPorten"));
-
-            // not recommended for production - you need to store your key material somewhere secure
-            builder.AddDeveloperSigningCredential();
         }
 
         public void Configure(IApplicationBuilder app)

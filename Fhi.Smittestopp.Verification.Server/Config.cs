@@ -3,8 +3,10 @@ using System.Collections.Generic;
 using System.Linq;
 using Fhi.Smittestopp.Verification.Domain.Constans;
 using Fhi.Smittestopp.Verification.Domain.Constants;
+using Fhi.Smittestopp.Verification.Server.Credentials;
 using IdentityModel;
 using IdentityServer4;
+using IdentityServer4.Stores;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -126,6 +128,38 @@ namespace Fhi.Smittestopp.Verification.Server
         public static IIdentityServerBuilder AddConfiguredClients(this IIdentityServerBuilder builder, IEnumerable<ClientConfig> clientConfigs)
         {
             return builder.AddInMemoryClients(clientConfigs?.Select(Config.CreateClientFromConfig) ?? new Client[0]);
+        }
+
+        public static IIdentityServerBuilder AddSigningCredentialFromConfig(this IIdentityServerBuilder isBuilder, IConfiguration config)
+        {
+            if (config["useDevSigningCredentials"] == "true")
+            {
+                return isBuilder.AddDeveloperSigningCredential();
+            }
+
+            isBuilder.Services.Configure<SigningCredentialsStore.Config>(config);
+            isBuilder.Services.AddSingleton<SigningCredentialsStore>();
+            isBuilder.Services.AddSingleton<ISigningCredentialStore>(s => s.GetRequiredService<SigningCredentialsStore>());
+            isBuilder.Services.AddSingleton<IValidationKeysStore>(s => s.GetRequiredService<SigningCredentialsStore>());
+            return isBuilder;
+        }
+
+        public static IServiceCollection AddCertLocator(this IServiceCollection services, IConfiguration config)
+        {
+            switch (config["locator"])
+            {
+                case "local":
+                {
+                    return services.AddTransient<ICertificateLocator, LocalCertificateLocator>();
+                }
+                case "azure":
+                {
+                    return services
+                        .Configure<AzureCertificateLocator.Config>(config.GetSection("azureVault"))
+                        .AddTransient<ICertificateLocator, AzureCertificateLocator>();
+                }
+            }
+            return services;
         }
     }
 }

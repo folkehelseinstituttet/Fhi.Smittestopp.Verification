@@ -132,7 +132,7 @@ namespace Fhi.Smittestopp.Verification.Server
 
         public static IIdentityServerBuilder AddSigningCredentialFromConfig(this IIdentityServerBuilder isBuilder, IConfiguration config)
         {
-            if (config["useDevSigningCredentials"] == "true")
+            if (config["useDevSigningCredentials"] == "True")
             {
                 return isBuilder.AddDeveloperSigningCredential();
             }

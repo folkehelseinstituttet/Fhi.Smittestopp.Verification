@@ -54,7 +54,9 @@
     }
   },
   "variables": {
-    "appServicePlanPortalName": "[concat('AppServicePlan-', parameters('appName'))]"
+    "appServicePlanPortalName": "[concat(parameters('appName'), '-service-plan')]",
+    "keyVaultName": "[concat(parameters('appName'), '-kv')]",
+    "certCreatorIdentityName": "[concat(parameters('appName'), '-cert-creator')]"
   },
   "resources": [
     {
@@ -75,10 +77,12 @@
       "apiVersion": "2020-06-01",
       "name": "[parameters('appName')]",
       "location": "[parameters('location')]",
-
       "dependsOn": [
         "[resourceId('Microsoft.Web/serverfarms', variables('appServicePlanPortalName'))]"
       ],
+      "identity": {
+        "type": "SystemAssigned"
+      },
       "properties": {
         "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', variables('appServicePlanPortalName'))]",
         "siteConfig": {
@@ -119,6 +123,50 @@
           }
         }
       ]
+    },
+    {
+      "type": "Microsoft.KeyVault/vaults",
+      "apiVersion": "2019-09-01",
+      "name": "[variables('keyVaultName')]",
+      "location": "[parameters('location')]",
+      "dependsOn": [
+        "[resourceId('Microsoft.Web/sites', parameters('appName'))]",
+        "[resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', variables('certCreatorIdentityName'))]"
+      ],
+      "properties": {
+        "enabledForDeployment": "false",
+        "enabledForDiskEncryption": "false",
+        "enabledForTemplateDeployment": "false",
+        "tenantId": "[subscription().tenantId]",
+        "accessPolicies": [
+          {
+            "objectId": "[reference(resourceId('Microsoft.Web/sites', parameters('appName')), '2018-02-01', 'Full').identity.principalId]",
+            "tenantId": "[subscription().tenantId]",
+            "permissions": {
+              "keys": [
+                "get",
+                "list"
+              ],
+              "secrets": [
+                "get",
+                "list"
+              ],
+              "certificates": [
+                "get",
+                "list"
+              ]
+            }
+          }
+        ],
+        "sku": {
+          "name": "Standard",
+          "family": "A"
+        },
+        "networkAcls": {
+          "defaultAction": "Allow",
+          "bypass": "AzureServices"
+        }
+      }
     }
   ]
 }

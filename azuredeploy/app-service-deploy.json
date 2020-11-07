@@ -130,8 +130,7 @@
       "name": "[variables('keyVaultName')]",
       "location": "[parameters('location')]",
       "dependsOn": [
-        "[resourceId('Microsoft.Web/sites', parameters('appName'))]",
-        "[resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', variables('certCreatorIdentityName'))]"
+        "[resourceId('Microsoft.Web/sites', parameters('appName'))]"
       ],
       "properties": {
         "enabledForDeployment": "false",

@@ -13,6 +13,7 @@ env:
   APP_NAME: test-smittestopp-verification
   DOTNET_ENV: Test
   ID_PORTEN_CLIENT_SECRET: ${{ secrets.ID_PORTEN_CLIENT_SECRET_TEST }}
+  KV_NAME: test-ssver-kv
 
 jobs:
   build:
@@ -51,7 +52,7 @@ jobs:
         resourceGroupName: ${{ env.AZURE_RG }}
         subscriptionId: ${{ env.AZURE_SUB }}
         template: ./azuredeploy/app-service-deploy.json 
-        parameters: appName=${{ env.APP_NAME }} environmentName=${{ env.DOTNET_ENV }} idPortenClientSecret=${{ env.ID_PORTEN_CLIENT_SECRET }} linuxFxVersion=${{ env.FX_VERSION }}
+        parameters: appName=${{ env.APP_NAME }} environmentName=${{ env.DOTNET_ENV }} idPortenClientSecret=${{ env.ID_PORTEN_CLIENT_SECRET }} linuxFxVersion=${{ env.FX_VERSION }} sku=${{ env.APP_SERVICE_SKU }} keyVaultName=${{ env.KV_NAME }}
 
     # Deploy to Azure Web apps
     - name: 'Run Azure webapp deploy'

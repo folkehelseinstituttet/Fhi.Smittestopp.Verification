@@ -1,6 +1,7 @@
 ﻿using IdentityServer4.Models;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using Fhi.Smittestopp.Verification.Domain.Constans;
 using Fhi.Smittestopp.Verification.Domain.Constants;
 using Fhi.Smittestopp.Verification.Server.Credentials;
@@ -116,6 +117,13 @@ namespace Fhi.Smittestopp.Verification.Server
                     {
                         NameClaimType = "name",
                         RoleClaimType = "role"
+                    };
+
+                    options.Events.OnRedirectToIdentityProvider = context =>
+                    {
+                        // force reauthentication for each verification attempt
+                        context.ProtocolMessage.Prompt = "login";
+                        return Task.CompletedTask;
                     };
                 });
         }

@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Security.Cryptography.X509Certificates;
 
-namespace Fhi.Smittestopp.Verification.Server.Credentials
+namespace Fhi.Smittestopp.Verification.Domain.Models
 {
     public class CertificateVersion
     {

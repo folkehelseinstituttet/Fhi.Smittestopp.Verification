@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Fhi.Smittestopp.Verification.Domain.Interfaces;
 using IdentityServer4.Models;
 using IdentityServer4.Stores;
 using Microsoft.Extensions.Caching.Memory;
@@ -61,7 +62,7 @@ namespace Fhi.Smittestopp.Verification.Server.Credentials
         private async Task<(SigningCredentials active, IEnumerable<SecurityKeyInfo> secondary)> RefreshCacheAsync(ICacheEntry cache)
         {
             cache.AbsoluteExpiration = DateTime.Now.AddDays(1);
-            var enabledCerts = await _certificateLocator.GetAllEnabledCertificateVersions(_config.Certificate);
+            var enabledCerts = await _certificateLocator.GetAllEnabledCertificateVersionsAsync(_config.Certificate);
 
             var rolloverTime = DateTime.UtcNow - _config.KeyRolloverDuration;
             var activeSigningCredentials = enabledCerts.FirstOrNone(x => x.Timestamp < rolloverTime)

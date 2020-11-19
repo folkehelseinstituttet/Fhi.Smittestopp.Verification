@@ -7,6 +7,8 @@ using Azure.Core;
 using Azure.Identity;
 using Azure.Security.KeyVault.Certificates;
 using Azure.Security.KeyVault.Secrets;
+using Fhi.Smittestopp.Verification.Domain.Interfaces;
+using Fhi.Smittestopp.Verification.Domain.Models;
 using Microsoft.Extensions.Options;
 using Optional;
 using Optional.Async.Extensions;
@@ -26,7 +28,7 @@ namespace Fhi.Smittestopp.Verification.Server.Credentials
             _secretClient = new SecretClient(vaultUri: new Uri(config.Value.VaultUri), credential: azureCredentials);
         }
 
-        public async Task<ICollection<CertificateVersion>> GetAllEnabledCertificateVersions(string certId)
+        public async Task<ICollection<CertificateVersion>> GetAllEnabledCertificateVersionsAsync(string certId)
         {
             // Get all the certificate versions
             var certVersionsPageable = _certClient.GetPropertiesOfCertificateVersionsAsync(certId);
@@ -38,7 +40,7 @@ namespace Fhi.Smittestopp.Verification.Server.Credentials
                 {
                     enabledCertProps.Add(new CertificateVersion
                     {
-                        Certificate = await LoadCertificate(certProps),
+                        Certificate = await LoadCertificateAsync(certProps),
                         Timestamp = certProps.CreatedOn.Value.UtcDateTime
                     });
                 }
@@ -49,17 +51,32 @@ namespace Fhi.Smittestopp.Verification.Server.Credentials
                 .ToList();
         }
 
-        public async Task<Option<X509Certificate2>> GetCertificate(string certId)
+        public async Task<Option<X509Certificate2>> GetCertificateAsync(string certId)
         {
             var certLookupResult = await _certClient.GetCertificateAsync(certId);
 
             return await certLookupResult.Value.SomeNotNull()
-                .MapAsync(c => LoadCertificate(c.Properties));
+                .MapAsync(c => LoadCertificateAsync(c.Properties));
         }
 
-        private async Task<X509Certificate2> LoadCertificate(CertificateProperties item)
+        public Option<X509Certificate2> GetCertificate(string certId)
+        {
+            var certLookupResult = _certClient.GetCertificate(certId);
+
+            return certLookupResult.Value.SomeNotNull()
+                .Map(c => LoadCertificate(c.Properties));
+        }
+
+        private async Task<X509Certificate2> LoadCertificateAsync(CertificateProperties item)
         {
             var certSecret = await _secretClient.GetSecretAsync(item.Name, item.Version);
+            var privateKeyBytes = Convert.FromBase64String(certSecret.Value.Value);
+            return new X509Certificate2(privateKeyBytes, (string)null, X509KeyStorageFlags.MachineKeySet);
+        }
+
+        private X509Certificate2 LoadCertificate(CertificateProperties item)
+        {
+            var certSecret = _secretClient.GetSecret(item.Name, item.Version);
             var privateKeyBytes = Convert.FromBase64String(certSecret.Value.Value);
             return new X509Certificate2(privateKeyBytes, (string)null, X509KeyStorageFlags.MachineKeySet);
         }

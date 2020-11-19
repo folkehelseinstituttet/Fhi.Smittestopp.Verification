@@ -1,7 +1,12 @@
+using System.Collections.Generic;
 using System.Threading.Tasks;
+using Fhi.Smittestopp.Verification.Msis;
 using Fhi.Smittestopp.Verification.Server;
 using FluentAssertions;
 using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.AspNetCore.TestHost;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 
 namespace Fhi.Smittestopp.Verification.Tests.Server
@@ -14,7 +19,20 @@ namespace Fhi.Smittestopp.Verification.Tests.Server
         [OneTimeSetUp]
         public void Setup()
         {
-            _factory = new WebApplicationFactory<Startup>();
+            _factory = new WebApplicationFactory<Startup>().WithWebHostBuilder(builder =>
+            {
+                builder.ConfigureAppConfiguration((context, configBuilder) =>
+                {
+                    configBuilder.AddInMemoryCollection(
+                        new Dictionary<string, string>
+                        {
+                            // Force mocked MSIS-integration to make tests runnable outside FHIs environments
+                            ["msis:mock"] = "True",
+                            // Force dev signing credentials
+                            ["signingCredentials:useDevSigningCredentials"] = "True"
+                        });
+                });
+            });
         }
 
         [OneTimeTearDown]

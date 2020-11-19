@@ -7,5 +7,6 @@ namespace Fhi.Smittestopp.Verification.Domain.Interfaces
     public interface IMsisLookupService
     {
         Task<Option<PositiveTestResult>> FindPositiveTestResult(string nationalId);
+        Task<bool> CheckIsOnline();
     }
 }

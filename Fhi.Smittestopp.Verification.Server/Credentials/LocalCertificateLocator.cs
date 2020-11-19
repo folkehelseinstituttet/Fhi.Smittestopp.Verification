@@ -2,13 +2,15 @@
 using System.Collections.Generic;
 using System.Security.Cryptography.X509Certificates;
 using System.Threading.Tasks;
+using Fhi.Smittestopp.Verification.Domain.Interfaces;
+using Fhi.Smittestopp.Verification.Domain.Models;
 using Optional;
 
 namespace Fhi.Smittestopp.Verification.Server.Credentials
 {
     public class LocalCertificateLocator : ICertificateLocator
     {
-        public Task<ICollection<CertificateVersion>> GetAllEnabledCertificateVersions(string certId)
+        public Task<ICollection<CertificateVersion>> GetAllEnabledCertificateVersionsAsync(string certId)
         {
             var certVersions = FindCertByThumbprint(certId)
                 .Map(c => new List<CertificateVersion>
@@ -24,9 +26,14 @@ namespace Fhi.Smittestopp.Verification.Server.Credentials
             return Task.FromResult<ICollection<CertificateVersion>>(certVersions);
         }
 
-        public Task<Option<X509Certificate2>> GetCertificate(string certId)
+        public Task<Option<X509Certificate2>> GetCertificateAsync(string certId)
         {
-            return Task.FromResult(FindCertByThumbprint(certId));
+            return Task.FromResult(GetCertificate(certId));
+        }
+
+        public Option<X509Certificate2> GetCertificate(string certId)
+        {
+            return FindCertByThumbprint(certId);
         }
 
         private static Option<X509Certificate2> FindCertByThumbprint(string thumbprint)

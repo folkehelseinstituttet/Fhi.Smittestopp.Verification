@@ -23,6 +23,10 @@ namespace Fhi.Smittestopp.Verification.Msis
 
         private Option<PositiveTestResult> CreateMockResult(string nationalId)
         {
+            if (nationalId == "08089403198")
+            {
+                throw new Exception("Mock technical error");
+            }
             if (int.TryParse(nationalId.Last().ToString(), out var lastDigit) && lastDigit % 2 == 0)
             {
                 var monthDigits = nationalId.Substring(2, 2);

@@ -43,6 +43,7 @@ namespace Fhi.Smittestopp.Verification.Server
                 })
                 .AddInMemoryIdentityResources(Config.IdentityResources)
                 .AddInMemoryApiScopes(Config.ApiScopes)
+                .AddProfileService<ProfileService>()
                 .AddConfiguredClients(Configuration.GetSection("clients"))
                 .AddSigningCredentialFromConfig(Configuration.GetSection("signingCredentials"));
 

@@ -13,6 +13,7 @@ export class AppComponent {
 
   loggedIn: boolean = false;
   initialised: boolean = false;
+  forceLoginPrompt: boolean = true;
 
   idToken: string;
   accessToken: string;
@@ -30,11 +31,11 @@ export class AppComponent {
   }
 
   initDefaultMode() {
-    this.initOauth();
+    this.initOauth('openid verification-info upload-api', this.forceLoginPrompt);
   }
 
   initDkCompatibleMode() {
-    this.initOauth('openid smittestop');
+    this.initOauth('openid smittestop', this.forceLoginPrompt);
   }
 
   startLogin() {
@@ -45,9 +46,21 @@ export class AppComponent {
     this.oauthService.revokeTokenAndLogout();
   }
 
-  private initOauth(scopes: string = null) {
+  reset() {
+    this.initialised = false;
+    this.loggedIn = false;
+    this.idToken = null;
+    this.accessToken = null;
+    this.grantedScopes = null;
+    this.identityClaims = null;
+  }
+
+  private initOauth(scopes: string = null, forceLoginPrompt: boolean = false) {
     this.initialised = true;
-    this.oauthService.configure(createAuthConfig(scopes));
+    let customParams = forceLoginPrompt ? {
+      prompt: 'login'
+    } : null;
+    this.oauthService.configure(createAuthConfig(scopes, customParams));
     this.oauthService.loadDiscoveryDocumentAndTryLogin().then(_ => {
       if (this.oauthService.hasValidIdToken()) {
         this.loggedIn = true;

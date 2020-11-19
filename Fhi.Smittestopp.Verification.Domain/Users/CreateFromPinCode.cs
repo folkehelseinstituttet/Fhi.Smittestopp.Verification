@@ -8,7 +8,7 @@ namespace Fhi.Smittestopp.Verification.Domain.Users
 {
     public class CreateFromPinCode
     {
-        public class Command : IRequest<Option<User>>
+        public class Command : IRequest<Option<PinVerifiedUser>>
         {
             public string PinCode { get; set; }
 
@@ -18,12 +18,12 @@ namespace Fhi.Smittestopp.Verification.Domain.Users
             }
         }
 
-        public class Handler : IRequestHandler<Command, Option<User>>
+        public class Handler : IRequestHandler<Command, Option<PinVerifiedUser>>
         {
-            public Task<Option<User>> Handle(Command request, CancellationToken cancellationToken)
+            public Task<Option<PinVerifiedUser>> Handle(Command request, CancellationToken cancellationToken)
             {
                 // Future PIN-code validation logic can be hooked up here
-                return Task.FromResult(Option.None<User>());
+                return Task.FromResult(Option.None<PinVerifiedUser>());
             }
         }
     }

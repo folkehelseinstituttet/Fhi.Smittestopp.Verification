@@ -37,7 +37,7 @@ namespace Fhi.Smittestopp.Verification.Tests.Domain.Users
         }
 
         [Test]
-        public async Task Handle_GivenValidIdAndPositiveTest_ReturnsPositiveUser()
+        public async Task Handle_GivenValidIdAndPositiveTest_ReturnsPositiveResult()
         {
             var automocker = new AutoMocker();
 

@@ -20,12 +20,6 @@ namespace Fhi.Smittestopp.Verification.Domain.Models
             Id = Guid.NewGuid();
         }
 
-        protected User(string provider, string providerUserId) : this()
-        {
-            //ExternalProvider = provider.Some();
-            //ExternalProviderUserId = providerUserId.Some();
-        }
-
         public IEnumerable<Claim> GetCustomClaims()
         {
             var claims = new List<Claim>

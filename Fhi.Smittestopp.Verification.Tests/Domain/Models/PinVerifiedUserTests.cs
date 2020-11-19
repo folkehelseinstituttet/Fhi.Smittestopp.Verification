@@ -1,8 +1,9 @@
-﻿using Fhi.Smittestopp.Verification.Domain.Constans;
+﻿using System.Linq;
 using Fhi.Smittestopp.Verification.Domain.Constants;
 using Fhi.Smittestopp.Verification.Domain.Models;
 using FluentAssertions;
 using NUnit.Framework;
+using Optional;
 
 namespace Fhi.Smittestopp.Verification.Tests.Domain.Models
 {
@@ -16,6 +17,7 @@ namespace Fhi.Smittestopp.Verification.Tests.Domain.Models
 
             target.Id.Should().NotBeEmpty();
             target.Pseudonym.Should().Be("pseudo-1");
+            target.NationalIdentifier.Should().Be(Option.None<string>());
         }
 
         [Test]
@@ -24,6 +26,17 @@ namespace Fhi.Smittestopp.Verification.Tests.Domain.Models
             var target = new PinVerifiedUser("pseudo-1");
 
             target.IsPinVerified.Should().BeTrue();
+        }
+
+        [Test]
+        public void GetCustomClaims_ReturnsNationalIdAndPseudonym()
+        {
+            var target = new PinVerifiedUser("pseudo-id-1");
+
+            var customClaims = target.GetCustomClaims().ToList();
+
+            customClaims.Should().Contain(x => x.Type == InternalClaims.PinVerified && x.Value == "true");
+            customClaims.Should().Contain(x => x.Type == InternalClaims.Pseudonym && x.Value == "pseudo-id-1");
         }
     }
 }

@@ -4,7 +4,6 @@ using System.Linq;
 using System.Security.Claims;
 using System.Threading;
 using System.Threading.Tasks;
-using Fhi.Smittestopp.Verification.Domain.Interfaces;
 using Fhi.Smittestopp.Verification.Domain.Models;
 using Fhi.Smittestopp.Verification.Domain.Users;
 using Fhi.Smittestopp.Verification.Server.Account;
@@ -216,9 +215,9 @@ namespace Fhi.Smittestopp.Verification.Tests.Server.Account
             var automocker = new AutoMocker();
 
             automocker
-                .Setup<IMediator, Task<Option<User>>>(m =>
+                .Setup<IMediator, Task<Option<PinVerifiedUser>>>(m =>
                     m.Send(It.IsAny<CreateFromPinCode.Command>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync(Option.None<User>());
+                .ReturnsAsync(Option.None<PinVerifiedUser>());
 
             automocker
                 .Setup<IUrlHelper, bool>(m => m.IsLocalUrl(It.IsAny<string>()))
@@ -239,9 +238,9 @@ namespace Fhi.Smittestopp.Verification.Tests.Server.Account
             var automocker = new AutoMocker();
 
             automocker
-                .Setup<IMediator, Task<Option<User>>>(m =>
+                .Setup<IMediator, Task<Option<PinVerifiedUser>>>(m =>
                     m.Send(It.IsAny<CreateFromPinCode.Command>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync(Option.None<User>());
+                .ReturnsAsync(Option.None<PinVerifiedUser>());
 
             automocker
                 .Setup<IUrlHelper, bool>(m => m.IsLocalUrl(It.IsAny<string>()))
@@ -264,10 +263,9 @@ namespace Fhi.Smittestopp.Verification.Tests.Server.Account
             var automocker = new AutoMocker();
 
             automocker
-                .Setup<IMediator, Task<Option<User>>>(m =>
+                .Setup<IMediator, Task<Option<PinVerifiedUser>>>(m =>
                     m.Send(It.IsAny<CreateFromPinCode.Command>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync(((User)new PositiveUser("unittest", "user-1", new PositiveTestResult(), 
-                    new VerificationRecord[0], new Mock<IVerificationLimit>().Object)).Some());
+                .ReturnsAsync(new PinVerifiedUser("pseudo-1").Some());
 
             automocker
                 .Setup<IUrlHelper, bool>(m => m.IsLocalUrl(It.IsAny<string>()))
@@ -293,10 +291,9 @@ namespace Fhi.Smittestopp.Verification.Tests.Server.Account
             var automocker = new AutoMocker();
 
             automocker
-                .Setup<IMediator, Task<Option<User>>>(m =>
+                .Setup<IMediator, Task<Option<PinVerifiedUser>>>(m =>
                     m.Send(It.IsAny<CreateFromPinCode.Command>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync(((User)new PositiveUser("unittest", "user-1", new PositiveTestResult(),
-                    new VerificationRecord[0], new Mock<IVerificationLimit>().Object)).Some());
+                .ReturnsAsync(new PinVerifiedUser("pseudo-1").Some());
 
             automocker
                 .Setup<IUrlHelper, bool>(m => m.IsLocalUrl(It.IsAny<string>()))
@@ -323,10 +320,9 @@ namespace Fhi.Smittestopp.Verification.Tests.Server.Account
             var automocker = new AutoMocker();
 
             automocker
-                .Setup<IMediator, Task<Option<User>>>(m =>
+                .Setup<IMediator, Task<Option<PinVerifiedUser>>>(m =>
                     m.Send(It.IsAny<CreateFromPinCode.Command>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync(((User)new PositiveUser("unittest", "user-1", new PositiveTestResult(),
-                    new VerificationRecord[0], new Mock<IVerificationLimit>().Object)).Some());
+                .ReturnsAsync(new PinVerifiedUser("pseudo-1").Some());
 
             automocker.Setup<IIdentityServerInteractionService, Task<AuthorizationRequest>>(x =>
                     x.GetAuthorizationContextAsync("/auth/?authRequest=123"))

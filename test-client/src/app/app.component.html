@@ -1,6 +1,12 @@
 <h1>Fhi.Smittestopp.Verification test client</h1>
 
 <div *ngIf="!initialised">
+  <div>
+    <label>
+      <input name="force-login-box" type="checkbox" [(checked)]="forceLoginPrompt" />
+      Force login prompt
+    </label>
+  </div>
   <button (click)="initDefaultMode()">Init (default)</button>
   <button (click)="initDkCompatibleMode()">Init (DK-compatible)</button>
 </div>
@@ -24,7 +30,9 @@
   <pre>{{identityClaims|json}}</pre>
 
   <button (click)="startLogout()">Logout</button>
-  
+
+  <button (click)="reset()">Reset view</button>
+
 </div>
 
 <router-outlet></router-outlet>

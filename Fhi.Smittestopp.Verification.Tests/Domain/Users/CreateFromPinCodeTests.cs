@@ -13,7 +13,7 @@ namespace Fhi.Smittestopp.Verification.Tests.Domain.Users
     public class CreateFromPinCodeTests
     {
         /// <summary>
-        /// Currently no PIN-storage exists, so all PINs are invalid..
+        /// Currently no PIN-storage is impemented, so all PINs are invalid..
         /// </summary>
         [Test]
         public async Task Handle_GivenInvalidPin_ReturnsNone()
@@ -24,7 +24,7 @@ namespace Fhi.Smittestopp.Verification.Tests.Domain.Users
 
             var result = await target.Handle(new CreateFromPinCode.Command("invalid-pin"), new CancellationToken());
 
-            result.Should().Be(Option.None<User>());
+            result.Should().Be(Option.None<PinVerifiedUser>());
         }
     }
 }

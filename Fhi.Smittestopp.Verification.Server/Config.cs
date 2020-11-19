@@ -86,7 +86,9 @@ namespace Fhi.Smittestopp.Verification.Server
                 AllowedCorsOrigins = clientConfig.CorsOrigins ?? new string[0],
                 RequirePkce = clientConfig.RequirePkce,
                 AlwaysIncludeUserClaimsInIdToken = true,
-                EnableLocalLogin = false
+                EnableLocalLogin = false,
+                AllowOfflineAccess = false,
+                IncludeJwtId = true
             };
         }
     }

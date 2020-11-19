@@ -1,7 +1,9 @@
 import { AuthConfig } from 'angular-oauth2-oidc';
 import { environment } from 'src/environments/environment';
 
-export function createAuthConfig(scopes: string = null): AuthConfig {
+export function createAuthConfig(scopes: string = null, queryParams: object = null): AuthConfig {
+  console.log('creating config', scopes, queryParams);
+
   return {
     // Url of the Identity Provider
     issuer: environment.authIssuer,
@@ -23,6 +25,8 @@ export function createAuthConfig(scopes: string = null): AuthConfig {
     scope: scopes ?? 'openid verification-info upload-api',
 
     // silentRefreshShowIFrame: true,
+
+    customQueryParams: queryParams,
 
     showDebugInformation: true,
 

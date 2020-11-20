@@ -1,12 +1,9 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using Fhi.Smittestopp.Verification.Msis;
 using Fhi.Smittestopp.Verification.Server;
 using FluentAssertions;
 using Microsoft.AspNetCore.Mvc.Testing;
-using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 
 namespace Fhi.Smittestopp.Verification.Tests.Server
@@ -26,6 +23,8 @@ namespace Fhi.Smittestopp.Verification.Tests.Server
                     configBuilder.AddInMemoryCollection(
                         new Dictionary<string, string>
                         {
+                            // Force in memory database when running tests
+                            ["connectionStrings:verificationDb"] = "in-memory",
                             // Force mocked MSIS-integration to make tests runnable outside FHIs environments
                             ["msis:mock"] = "True",
                             // Force dev signing credentials

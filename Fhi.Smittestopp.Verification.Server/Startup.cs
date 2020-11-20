@@ -27,6 +27,7 @@ namespace Fhi.Smittestopp.Verification.Server
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddHealthChecks()
+                .AddDbHealthCheck(Configuration.GetConnectionString("verificationDb"))
                 .AddCheck<MsisHealthCheck>("msis_health_check");
 
             services.AddSingleton<IActionContextAccessor, ActionContextAccessor>();
@@ -56,7 +57,7 @@ namespace Fhi.Smittestopp.Verification.Server
 
             services.AddMsisLookup(Configuration.GetSection("msis"));
 
-            services.AddMockPersistence();
+            services.AddPersistence(Configuration.GetConnectionString("verificationDb"));
 
             services.AddAuthentication()
                 .AddIdPortenAuth(Configuration.GetSection("idPorten"));
@@ -81,6 +82,9 @@ namespace Fhi.Smittestopp.Verification.Server
                 endpoints.MapDefaultControllerRoute();
                 endpoints.MapHealthChecks("/health");
             });
+
+            // Ensure migrations for DB-context are applied
+            app.MigrateDatabase<VerificationDbContext>();
         }
     }
 }

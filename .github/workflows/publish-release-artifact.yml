@@ -1,0 +1,38 @@
+name: Publish release artifact
+
+on:
+  push:
+    branches: [ main ]
+
+env:
+  DOTNET_VERSION: 3.1.301
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    # Job setup
+    - uses: actions/checkout@v2
+    - name: Setup .NET Core
+      uses: actions/setup-dotnet@v1
+      with:
+        dotnet-version: ${{ env.DOTNET_VERSION }}
+
+    # Build, test and publish app
+    - name: Install dependencies
+      run: dotnet restore
+    - name: Build
+      run: dotnet build --configuration Release --no-restore
+    - name: Test
+      run: dotnet test --no-restore --verbosity normal
+    - name: Publish
+      run: dotnet publish Fhi.Smittestopp.Verification.Server --configuration Release --no-build --output published-app
+
+    # Publish app artifact
+    - name: Publish artifact
+      uses: actions/upload-artifact@v2
+      with:
+        name: smittestopp-verification-app
+        path: published-app

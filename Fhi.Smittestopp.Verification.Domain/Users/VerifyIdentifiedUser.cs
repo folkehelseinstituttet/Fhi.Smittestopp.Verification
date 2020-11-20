@@ -50,7 +50,7 @@ namespace Fhi.Smittestopp.Verification.Domain.Users
             private async Task<VerificationResult> CreatePositiveVerificationResult(PositiveTestResult testResult, string pseudonym)
             {
                 var existingRecords =
-                    await _verificationRecordsRepository.RetrieveRecordsForPseudonym(pseudonym);
+                    await _verificationRecordsRepository.RetrieveRecordsForPseudonym(pseudonym, _verificationLimit.RecordsCutoff);
                 var newRecord = new VerificationRecord(pseudonym);
 
                 var verificationRecords = existingRecords.Concat(new[] { newRecord });

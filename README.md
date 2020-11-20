@@ -1,7 +1,7 @@
 # Fhi.Smittestopp.Verification
 ![Build and test](https://github.com/folkehelseinstituttet/Fhi.Smittestopp.Verification/workflows/Build%20and%20test/badge.svg) [![Coverage Status](https://coveralls.io/repos/github/folkehelseinstituttet/Fhi.Smittestopp.Verification/badge.svg?branch=main)](https://coveralls.io/github/folkehelseinstituttet/Fhi.Smittestopp.Verification?branch=main) [![License: MIT](https://img.shields.io/badge/License-MIT-brightgreen.svg)](LICENSE)
 
-## Getting started
+## Getting startet
 
 To run this application you will need the .NET Core 3.1 SDK. You can launch the web application through the `dotnet run` command from the `Fhi.Smittestopp.Verification.Server` folder.
 
@@ -15,6 +15,16 @@ Run the following command from the `Fhi.Smittestopp.Verification.Server` folder 
 
 `dotnet user-secrets set "idPorten:clientSecret" "<your-client-secret>"`
 
+### Database
+
+The default configuration attempts to create a local MSSQL database. Change the connectionstring in appsettings.json or override the config as needed. A connection string value of `in-memory` will use an in-memory database instead of MSSQL.
+
 ### Test client
 
 A basic test SPA client has been included in this repository to test the OIDC logins against the application. To run this client you will need Node.js installed. You can then install necessary dependencies throught the command `npm install` in the `test-client` folder, and then launch the client through `npm run start` in the same folder. This client presents a "Login"-button to start the OIDC login flow, and on completed login presents the raw ID-token and access-token, all ID-token claims, and a button to log out.
+
+## Contributing
+
+For anyone who would like to contribute to this project, we refer to our [Code of Conduct](CODE_OF_CONDUCT.md).
+
+We prefer any changes are discussed through raising an issue before implementing the change.

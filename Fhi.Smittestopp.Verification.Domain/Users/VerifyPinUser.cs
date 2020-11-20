@@ -36,7 +36,7 @@ namespace Fhi.Smittestopp.Verification.Domain.Users
             public async Task<VerificationResult> Handle(Command request, CancellationToken cancellationToken)
             {
                 var existingRecords =
-                    await _verificationRecordsRepository.RetrieveRecordsForPseudonym(request.Pseudonym);
+                    await _verificationRecordsRepository.RetrieveRecordsForPseudonym(request.Pseudonym, _verificationLimit.RecordsCutoff);
                 var newRecord = new VerificationRecord(request.Pseudonym);
 
                 var verificationRecords = existingRecords.Concat(new[] { newRecord });

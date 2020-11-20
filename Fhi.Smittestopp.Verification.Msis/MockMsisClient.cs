@@ -8,7 +8,7 @@ namespace Fhi.Smittestopp.Verification.Msis
 {
     public class MockMsisClient : IMsisClient
     {
-        private static readonly string[] TechnialErrorUsers = {
+        private static readonly string[] TechnicalErrorUsers = {
             "08089403198",
             "08089403783"
         };
@@ -32,7 +32,7 @@ namespace Fhi.Smittestopp.Verification.Msis
 
         private Covid19Status CreateCovid19Status(string nationalId)
         {
-            if (TechnialErrorUsers.Contains(nationalId))
+            if (TechnicalErrorUsers.Contains(nationalId))
             {
                 throw new Exception("Mock technical error");
             }

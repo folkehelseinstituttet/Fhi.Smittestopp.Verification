@@ -32,7 +32,7 @@ jobs:
 
     # Publish app artifact
     - name: Publish artifact
-    - uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v2
       with:
         name: smittestopp-verification-app
         path: published-app

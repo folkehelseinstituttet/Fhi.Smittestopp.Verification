@@ -63,6 +63,7 @@
   "variables": {
     "appServicePlanPortalName": "[concat(parameters('appName'), '-service-plan')]",
     "keyVaultUri": "[concat('https://', parameters('keyVaultName'), '.vault.azure.net/')]",
+    "aiName": "[concat(parameters('appName'), '-ai')]",
     "sqlserverName": "[concat(parameters('appName'), '-sql-server')]",
     "databaseName": "[parameters('appName')]",
     "sqlAdministratorLogin": "[concat('l', uniqueString(resourceGroup().id, '29742a40-0589-4c89-8d06-b24ac7c8360c'))]",
@@ -130,12 +131,24 @@
       }
     },
     {
+        "apiVersion": "2015-05-01",
+        "name": "[variables('aiName')]",
+        "type": "microsoft.insights/components",
+        "location": "[parameters('location')]",
+        "tags": {},
+        "properties": {
+          "Application_Type": "web",
+          "Request_Source": "rest"
+        }
+    },
+    {
       "type": "Microsoft.Web/sites",
       "apiVersion": "2020-06-01",
       "name": "[parameters('appName')]",
       "location": "[parameters('location')]",
       "dependsOn": [
-        "[resourceId('Microsoft.Web/serverfarms', variables('appServicePlanPortalName'))]"
+        "[resourceId('Microsoft.Web/serverfarms', variables('appServicePlanPortalName'))]",
+        "[resourceId('microsoft.insights/components', variables('aiName'))]"
       ],
       "identity": {
         "type": "SystemAssigned"
@@ -152,6 +165,14 @@
             }
           ],
           "appSettings": [
+            {
+              "name": "ApplicationInsights_InstrumentationKey",
+              "value": "[reference(resourceId('microsoft.insights/components', variables('aiName'))).InstrumentationKey]"
+            },
+            {
+              "name": "ApplicationInsights_ConnectionString",
+              "value": "[reference(resourceId('microsoft.insights/components', variables('aiName'))).ConnectionString]"
+            },
             {
               "name": "ASPNETCORE_ENVIRONMENT",
               "value": "[parameters('environmentName')]"

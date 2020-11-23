@@ -166,16 +166,12 @@
           ],
           "appSettings": [
             {
-              "name": "ApplicationInsights_InstrumentationKey",
-              "value": "[reference(resourceId('microsoft.insights/components', variables('aiName'))).InstrumentationKey]"
-            },
-            {
-              "name": "ApplicationInsights_ConnectionString",
-              "value": "[reference(resourceId('microsoft.insights/components', variables('aiName'))).ConnectionString]"
-            },
-            {
               "name": "ASPNETCORE_ENVIRONMENT",
               "value": "[parameters('environmentName')]"
+            },
+            {
+              "name": "ApplicationInsights__InstrumentationKey",
+              "value": "[reference(resourceId('microsoft.insights/components', variables('aiName'))).InstrumentationKey]"
             },
             {
               "name": "idPorten__clientSecret",

@@ -50,6 +50,7 @@ namespace Fhi.Smittestopp.Verification.Server
                 .AddConfiguredClients(Configuration.GetSection("clients"))
                 .AddSigningCredentialFromConfig(Configuration.GetSection("signingCredentials"));
 
+            // Add MediatR and all handlers from specified assemplies
             services.AddMediatR(typeof(CreateFromExternalAuthentication).Assembly);
 
             services.AddTransient<IAccountService, AccountService>();

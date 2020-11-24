@@ -15,10 +15,9 @@ namespace Fhi.Smittestopp.Verification.Domain.Models
 
         public IVerificationLimitConfig Config { get; }
 
-        public bool HasExceededLimit(IEnumerable<VerificationRecord> records)
+        public bool HasExceededLimit(IEnumerable<VerificationRecord> priorVerifications)
         {
-            return records.Count(x => x.VerifiedAtTime.ToUniversalTime() >= RecordsCutoff) >
-                   Config.MaxVerificationsAllowed;
+            return priorVerifications.Count(x => x.VerifiedAtTime.ToUniversalTime() >= RecordsCutoff) >= Config.MaxVerificationsAllowed;
         }
 
         public DateTime RecordsCutoff => DateTime.UtcNow - Config.MaxLimitDuration;

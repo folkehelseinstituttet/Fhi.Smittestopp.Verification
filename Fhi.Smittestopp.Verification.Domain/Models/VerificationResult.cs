@@ -17,11 +17,11 @@ namespace Fhi.Smittestopp.Verification.Domain.Models
         /// Constructor for positive verifications
         /// </summary>
         public VerificationResult(PositiveTestResult testresult,
-            IEnumerable<VerificationRecord> existingVerificationRecords,
+            IEnumerable<VerificationRecord> priorVerifications,
             IVerificationLimit verificationLimit)
         {
             _testresult = testresult.Some();
-            VerificationLimitExceeded = verificationLimit.HasExceededLimit(existingVerificationRecords);
+            VerificationLimitExceeded = verificationLimit.HasExceededLimit(priorVerifications);
             VerificationLimitConfig = verificationLimit.Config.Some();
         }
 

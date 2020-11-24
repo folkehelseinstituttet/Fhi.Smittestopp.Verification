@@ -8,6 +8,6 @@ namespace Fhi.Smittestopp.Verification.Domain.Interfaces
     {
         IVerificationLimitConfig Config { get; }
         DateTime RecordsCutoff { get; }
-        bool HasExceededLimit(IEnumerable<VerificationRecord> records);
+        bool HasExceededLimit(IEnumerable<VerificationRecord> priorVerifications);
     }
 }

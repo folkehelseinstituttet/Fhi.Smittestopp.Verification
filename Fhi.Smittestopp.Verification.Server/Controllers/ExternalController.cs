@@ -81,6 +81,8 @@ namespace Fhi.Smittestopp.Verification.Server.Controllers
                 throw new Exception("External authentication error");
             }
 
+            _logger.LogInformation("Processing external login callback");
+
             if (_logger.IsEnabled(LogLevel.Debug))
             {
                 var externalClaims = result.Principal.Claims.Select(c => $"{c.Type}: {c.Value}");

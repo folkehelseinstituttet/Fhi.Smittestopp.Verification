@@ -28,7 +28,9 @@ namespace Fhi.Smittestopp.Verification.Server.Account
 
         public async Task GetProfileDataAsync(ProfileDataRequestContext context)
         {
+            _logger.LogInformation("Retrieving claims for request: {requestedClaims}", context.RequestedClaimTypes);
             context.AddRequestedClaims(await GetCustomClaims(context.Subject, context.RequestedClaimTypes));
+            _logger.LogInformation("Issued claims: {issuedClaims}", context.IssuedClaims.Select(c => c.Type).ToList());
         }
 
         public Task IsActiveAsync(IsActiveContext context)

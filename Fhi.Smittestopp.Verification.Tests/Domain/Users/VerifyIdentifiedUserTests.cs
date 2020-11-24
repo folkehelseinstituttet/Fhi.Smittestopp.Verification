@@ -6,6 +6,7 @@ using Fhi.Smittestopp.Verification.Domain.Interfaces;
 using Fhi.Smittestopp.Verification.Domain.Models;
 using Fhi.Smittestopp.Verification.Domain.Users;
 using FluentAssertions;
+using Microsoft.Extensions.Options;
 using Moq;
 using Moq.AutoMock;
 using NUnit.Framework;
@@ -25,6 +26,12 @@ namespace Fhi.Smittestopp.Verification.Tests.Domain.Users
                 .Setup<IMsisLookupService, Task<Option<PositiveTestResult>>>(x =>
                     x.FindPositiveTestResult("01019098765"))
                 .ReturnsAsync(Option.None<PositiveTestResult>());
+
+            automocker.Setup<IOptions<VerifyIdentifiedUser.Config>, VerifyIdentifiedUser.Config>(x => x.Value)
+                .Returns(new VerifyIdentifiedUser.Config
+                {
+                    UseFixedTestCases = false
+                });
 
             var target = automocker.CreateInstance<VerifyIdentifiedUser.Handler>();
 
@@ -49,6 +56,12 @@ namespace Fhi.Smittestopp.Verification.Tests.Domain.Users
                     PositiveTestDate = DateTime.Today.AddDays(-7).Some()
                 }.Some);
 
+            automocker.Setup<IOptions<VerifyIdentifiedUser.Config>, VerifyIdentifiedUser.Config>(x => x.Value)
+                .Returns(new VerifyIdentifiedUser.Config
+                {
+                    UseFixedTestCases = false
+                });
+
             var target = automocker.CreateInstance<VerifyIdentifiedUser.Handler>();
 
             var result = await target.Handle(new VerifyIdentifiedUser.Command("01019098765", "pseudo-1"), new CancellationToken());
@@ -72,6 +85,12 @@ namespace Fhi.Smittestopp.Verification.Tests.Domain.Users
                 {
                     PositiveTestDate = DateTime.Today.AddDays(-7).Some()
                 }.Some);
+
+            automocker.Setup<IOptions<VerifyIdentifiedUser.Config>, VerifyIdentifiedUser.Config>(x => x.Value)
+                .Returns(new VerifyIdentifiedUser.Config
+                {
+                    UseFixedTestCases = false
+                });
 
             automocker
                 .Setup<IVerificationLimit, bool>(x => x.HasExceededLimit(It.IsAny<IEnumerable<VerificationRecord>>()))

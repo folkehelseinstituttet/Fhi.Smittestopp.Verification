@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Security.Claims;
 using Fhi.Smittestopp.Verification.Domain.Constans;
 using Fhi.Smittestopp.Verification.Domain.Constants;
@@ -11,6 +12,17 @@ namespace Fhi.Smittestopp.Verification.Domain.Models
 {
     public class VerificationResult
     {
+        private static readonly string[] PossibleVerificationClaims =
+        {
+            JwtClaimTypes.Role,
+            DkSmittestopClaims.Covid19Status,
+            DkSmittestopClaims.Covid19InfectionStart,
+            DkSmittestopClaims.Covid19Blocked,
+            DkSmittestopClaims.Covid19LimitDuration,
+            DkSmittestopClaims.Covid19LimitCount,
+            VerificationClaims.VerifiedPositiveTestDate
+        };
+
         private Option<PositiveTestResult> _testresult;
 
         /// <summary>
@@ -74,6 +86,16 @@ namespace Fhi.Smittestopp.Verification.Domain.Models
             });
 
             return claims;
+        }
+
+        /// <summary>
+        /// Check to see if verification claims has been requested, to see if a verification should be performed
+        /// </summary>
+        /// <param name="requestedClaims">The list of requested claims</param>
+        /// <returns>Boolean indicating if any of the requested claims require a verification</returns>
+        public static bool RequestedClaimsRequiresVerification(IEnumerable<string> requestedClaims)
+        {
+            return requestedClaims.Any(x => PossibleVerificationClaims.Contains(x));
         }
     }
 }

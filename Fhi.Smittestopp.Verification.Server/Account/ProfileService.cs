@@ -28,7 +28,7 @@ namespace Fhi.Smittestopp.Verification.Server.Account
 
         public async Task GetProfileDataAsync(ProfileDataRequestContext context)
         {
-            context.AddRequestedClaims(await GetCustomClaims(context.Subject));
+            context.AddRequestedClaims(await GetCustomClaims(context.Subject, context.RequestedClaimTypes));
         }
 
         public Task IsActiveAsync(IsActiveContext context)
@@ -38,7 +38,7 @@ namespace Fhi.Smittestopp.Verification.Server.Account
             return Task.CompletedTask;
         }
 
-        public async Task<IEnumerable<Claim>> GetCustomClaims(ClaimsPrincipal subject)
+        public async Task<IEnumerable<Claim>> GetCustomClaims(ClaimsPrincipal subject, IEnumerable<string> requestedClaims)
         {
             var originalClaims = subject.Claims.ToList();
 
@@ -50,29 +50,32 @@ namespace Fhi.Smittestopp.Verification.Server.Account
             var nationalIdentifierClaim = originalClaims.FirstOrNone(x => x.Type == InternalClaims.NationalIdentifier);
 
             var verificationClaims = new List<Claim>();
-            try
+            if (VerificationResult.RequestedClaimsRequiresVerification(requestedClaims))
             {
-                var verificationResult = await nationalIdentifierClaim.MatchAsync(
-                    none: async () =>
-                    {
-                        var isPinVerified = originalClaims
-                            .FirstOrNone(x => x.Type == InternalClaims.PinVerified)
-                            .Map(x => x.Value == "true")
-                            .ValueOr(false);
+                try
+                {
+                    var verificationResult = await nationalIdentifierClaim.MatchAsync(
+                        none: async () =>
+                        {
+                            var isPinVerified = originalClaims
+                                .FirstOrNone(x => x.Type == InternalClaims.PinVerified)
+                                .Map(x => x.Value == "true")
+                                .ValueOr(false);
 
-                        return isPinVerified
-                            ? await _mediator.Send(new VerifyPinUser.Command(pseudonym))
-                            : new VerificationResult();
+                            return isPinVerified
+                                ? await _mediator.Send(new VerifyPinUser.Command(pseudonym))
+                                : new VerificationResult();
 
-                    },
-                    some: natIdent => _mediator.Send(new VerifyIdentifiedUser.Command(natIdent.Value, pseudonym)));
+                        },
+                        some: natIdent => _mediator.Send(new VerifyIdentifiedUser.Command(natIdent.Value, pseudonym)));
 
-                verificationClaims.AddRange(verificationResult.GetVerificationClaims());
-            }
-            catch (Exception e)
-            {
-                _logger.LogError(e, "Error encountered when attempting to verify user infection status");
-                verificationClaims.Add(new Claim(DkSmittestopClaims.Covid19Status, DkSmittestopClaims.StatusValues.Unknwon));
+                    verificationClaims.AddRange(verificationResult.GetVerificationClaims());
+                }
+                catch (Exception e)
+                {
+                    _logger.LogError(e, "Error encountered when attempting to verify user infection status");
+                    verificationClaims.Add(new Claim(DkSmittestopClaims.Covid19Status, DkSmittestopClaims.StatusValues.Unknwon));
+                }
             }
 ;
             return verificationClaims;

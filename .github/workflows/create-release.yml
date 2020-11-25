@@ -34,7 +34,7 @@ jobs:
 
     # Publish app artifact
     - name: Build project # This would actually build your project, using zip for an example artifact
-      run: zip -r Fhi.Smittestopp.Verification.Server.zip published-app/*
+      run: cd published-app; zip -r ../Fhi.Smittestopp.Verification.Server.zip *
     - name: Create GitHub Release
       id: create_release
       uses: actions/create-release@v1

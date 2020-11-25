@@ -24,7 +24,11 @@ namespace Fhi.Smittestopp.Verification.Tests.Server
                         new Dictionary<string, string>
                         {
                             // Force in memory database when running tests
-                            ["connectionStrings:verificationDb"] = "in-memory"
+                            ["connectionStrings:verificationDb"] = "in-memory",
+                            // Force mocked MSIS-integration to make tests runnable outside FHIs environments
+                            ["msis:mock"] = "True",
+                            // Force dev signing credentials
+                            ["signingCredentials:useDevSigningCredentials"] = "True"
                         });
                 });
             });

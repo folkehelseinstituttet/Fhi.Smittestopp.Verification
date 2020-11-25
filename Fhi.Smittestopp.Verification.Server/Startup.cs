@@ -27,7 +27,8 @@ namespace Fhi.Smittestopp.Verification.Server
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddHealthChecks()
-                .AddDbHealthCheck(Configuration.GetConnectionString("verificationDb"));
+                .AddDbHealthCheck(Configuration.GetConnectionString("verificationDb"))
+                .AddCheck<MsisHealthCheck>("msis_health_check");
 
             services.AddSingleton<IActionContextAccessor, ActionContextAccessor>();
 
@@ -56,7 +57,9 @@ namespace Fhi.Smittestopp.Verification.Server
             services.AddTransient<IAccountService, AccountService>();
 
             services.AddDomainServices(Configuration.GetSection("common"));
-            services.AddMockMsisLookup();
+
+            services.AddMsisLookup(Configuration.GetSection("msis"));
+
             services.AddPersistence(Configuration.GetConnectionString("verificationDb"));
 
             services.AddAuthentication()
@@ -70,13 +73,11 @@ namespace Fhi.Smittestopp.Verification.Server
                 app.UseDeveloperExceptionPage();
             }
 
-            // uncomment if you want to add MVC
             app.UseStaticFiles();
             app.UseRouting();
 
             app.UseIdentityServer();
 
-            // uncomment, if you want to add MVC
             app.UseAuthentication();
             app.UseAuthorization();
             app.UseEndpoints(endpoints =>

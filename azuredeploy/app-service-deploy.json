@@ -58,12 +58,34 @@
       "metadata": {
         "description": "The name of the key vault to be created."
       }
+    },
+    "laSku": {
+      "type": "string",
+      "allowedValues": [
+        "pergb2018",
+        "Free",
+        "Standalone",
+        "PerNode",
+        "Standard",
+        "Premium"
+        ],
+      "defaultValue": "pergb2018",
+      "metadata": {
+        "description": "Pricing tier: PerGB2018 or legacy tiers (Free, Standalone, PerNode, Standard or Premium) which are not available to all customers."
+      }
+    },
+    "laRetentionInDays": {
+      "type": "int",
+      "defaultValue": 30,
+      "metadata": {
+        "description": "The workspace data retention in days, between 30 and 730."
+      }
     }
   },
   "variables": {
     "appServicePlanPortalName": "[concat(parameters('appName'), '-service-plan')]",
     "keyVaultUri": "[concat('https://', parameters('keyVaultName'), '.vault.azure.net/')]",
-    "aiName": "[concat(parameters('appName'), '-ai')]",
+    "laWsName": "[concat(parameters('appName'), '-la-ws')]",
     "sqlserverName": "[concat(parameters('appName'), '-sql-server')]",
     "databaseName": "[parameters('appName')]",
     "sqlAdministratorLogin": "[concat('l', uniqueString(resourceGroup().id, '29742a40-0589-4c89-8d06-b24ac7c8360c'))]",
@@ -131,15 +153,17 @@
       }
     },
     {
-        "apiVersion": "2015-05-01",
-        "name": "[variables('aiName')]",
-        "type": "microsoft.insights/components",
-        "location": "[parameters('location')]",
-        "tags": {},
-        "properties": {
-          "Application_Type": "web",
-          "Request_Source": "rest"
-        }
+      "type": "Microsoft.OperationalInsights/workspaces",
+      "apiVersion": "2020-08-01",
+      "name": "[variables('laWsName')]",
+      "tags": {},
+      "location": "[parameters('location')]",
+      "properties": {
+        "sku": {
+          "name": "[parameters('laSku')]"
+        },
+        "retentionInDays": "[parameters('laRetentionInDays')]"
+      }
     },
     {
       "type": "Microsoft.Web/sites",
@@ -148,7 +172,7 @@
       "location": "[parameters('location')]",
       "dependsOn": [
         "[resourceId('Microsoft.Web/serverfarms', variables('appServicePlanPortalName'))]",
-        "[resourceId('microsoft.insights/components', variables('aiName'))]"
+        "[resourceId('Microsoft.OperationalInsights/workspaces', variables('laWsName'))]"
       ],
       "identity": {
         "type": "SystemAssigned"
@@ -170,8 +194,12 @@
               "value": "[parameters('environmentName')]"
             },
             {
-              "name": "ApplicationInsights__InstrumentationKey",
-              "value": "[reference(resourceId('microsoft.insights/components', variables('aiName'))).InstrumentationKey]"
+              "name": "logAnalytics__workspaceId",
+              "value": "[reference(resourceId('Microsoft.OperationalInsights/workspaces', variables('laWsName'))).customerId]"
+            },
+            {
+              "name": "logAnalytics__primaryKey",
+              "value": "[listKeys(resourceId('Microsoft.OperationalInsights/workspaces', variables('laWsName')), providers('Microsoft.OperationalInsights', 'workspaces').apiVersions[0]).primarySharedKey]"
             },
             {
               "name": "idPorten__clientSecret",

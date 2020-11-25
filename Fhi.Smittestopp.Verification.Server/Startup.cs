@@ -32,8 +32,6 @@ namespace Fhi.Smittestopp.Verification.Server
 
             services.AddSingleton<IActionContextAccessor, ActionContextAccessor>();
 
-            services.AddApplicationInsightsTelemetry();
-
             services.AddControllersWithViews();
 
             services.AddMemoryCache();

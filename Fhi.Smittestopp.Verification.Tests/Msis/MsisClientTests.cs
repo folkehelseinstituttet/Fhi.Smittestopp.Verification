@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Fhi.Smittestopp.Verification.Msis;
 using Fhi.Smittestopp.Verification.Tests.TestUtils;
 using FluentAssertions;
+using FluentAssertions.Execution;
 using Moq;
 using NUnit.Framework;
 
@@ -64,8 +65,11 @@ namespace Fhi.Smittestopp.Verification.Tests.Msis
             var result = await target.GetCovid19Status("01019098765");
 
             // ASSERT
-            result.HarPositivCovid19Prove.Should().BeTrue();
-            result.Provedato.Should().BeCloseTo(DateTime.Parse("2020-11-19T17:08:59.902Z").ToUniversalTime());
+            using (new AssertionScope())
+            {
+                result.HarPositivCovid19Prove.Should().BeTrue();
+                result.Provedato.Should().BeCloseTo(DateTime.Parse("2020-11-19T17:08:59.902Z").ToUniversalTime());
+            }
             handlerMock.Verify();
         }
 
@@ -93,8 +97,11 @@ namespace Fhi.Smittestopp.Verification.Tests.Msis
             var result = await target.GetCovid19Status("01019098765");
 
             // ASSERT
-            result.HarPositivCovid19Prove.Should().BeFalse();
-            result.Provedato.Should().BeNull();
+            using (new AssertionScope())
+            {
+                result.HarPositivCovid19Prove.Should().BeFalse();
+                result.Provedato.Should().BeNull();
+            }
             handlerMock.Verify();
         }
     }

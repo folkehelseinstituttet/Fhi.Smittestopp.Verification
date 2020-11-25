@@ -5,6 +5,7 @@ using Fhi.Smittestopp.Verification.Msis;
 using Fhi.Smittestopp.Verification.Msis.Interfaces;
 using Fhi.Smittestopp.Verification.Msis.Models;
 using FluentAssertions;
+using FluentAssertions.Execution;
 using Moq;
 using Moq.AutoMock;
 using NUnit.Framework;
@@ -51,8 +52,11 @@ namespace Fhi.Smittestopp.Verification.Tests.Msis
 
             var result = await target.FindPositiveTestResult("01019012345");
 
-            result.HasValue.Should().BeTrue();
-            result.MatchSome(x => x.PositiveTestDate.Should().Be(positiveTestData.Some()));
+            using (new AssertionScope())
+            {
+                result.HasValue.Should().BeTrue();
+                result.MatchSome(x => x.PositiveTestDate.Should().Be(positiveTestData.Some()));
+            }
         }
 
         [TestCase(true)]

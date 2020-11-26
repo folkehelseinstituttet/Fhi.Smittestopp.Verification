@@ -3,6 +3,7 @@ using Fhi.Smittestopp.Verification.Domain.Users;
 using Fhi.Smittestopp.Verification.Msis;
 using Fhi.Smittestopp.Verification.Persistence;
 using Fhi.Smittestopp.Verification.Server.Account;
+using IdentityServer4.EntityFramework.DbContexts;
 using MediatR;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -28,7 +29,8 @@ namespace Fhi.Smittestopp.Verification.Server
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddHealthChecks()
-                .AddDbHealthCheck(Configuration.GetConnectionString("verificationDb"))
+                .AddDbContextCheck<VerificationDbContext>()
+                .AddDbContextCheck<PersistedGrantDbContext>()
                 .AddCheck<MsisHealthCheck>("msis_health_check");
 
             services.AddSingleton<IActionContextAccessor, ActionContextAccessor>();
@@ -57,6 +59,11 @@ namespace Fhi.Smittestopp.Verification.Server
                 .AddInMemoryIdentityResources(Config.IdentityResources)
                 .AddInMemoryApiScopes(Config.ApiScopes)
                 .AddProfileService<ProfileService>()
+                .AddOperationalStore(options =>
+                {
+                    options.ConfigureDbContext = b => b.UseSqlOrInMemory(Configuration.GetConnectionString("verificationDb"),
+                        sql => sql.MigrationsAssembly(typeof(PersistenceConfigExtentions).Assembly.FullName));
+                })
                 .AddConfiguredClients(Configuration.GetSection("clients"))
                 .AddSigningCredentialFromConfig(Configuration.GetSection("signingCredentials"));
 
@@ -99,6 +106,7 @@ namespace Fhi.Smittestopp.Verification.Server
 
             // Ensure migrations for DB-context are applied
             app.MigrateDatabase<VerificationDbContext>();
+            app.MigrateDatabase<PersistedGrantDbContext>();
         }
     }
 }

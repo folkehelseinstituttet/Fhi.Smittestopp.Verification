@@ -6,6 +6,7 @@ using Fhi.Smittestopp.Verification.Server.Account;
 using MediatR;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -33,6 +34,11 @@ namespace Fhi.Smittestopp.Verification.Server
             services.AddSingleton<IActionContextAccessor, ActionContextAccessor>();
 
             services.AddControllersWithViews();
+            services.Configure<ForwardedHeadersOptions>(options =>
+            {
+                options.ForwardedHeaders =
+                    ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
+            });
 
             services.AddMemoryCache();
 
@@ -70,6 +76,8 @@ namespace Fhi.Smittestopp.Verification.Server
             {
                 app.UseDeveloperExceptionPage();
             }
+
+            app.UseForwardedHeaders();
 
             app.UseStaticFiles();
             app.UseRouting();

@@ -6,6 +6,7 @@ using Fhi.Smittestopp.Verification.Server.Account;
 using IdentityServer4.EntityFramework.DbContexts;
 using MediatR;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
@@ -34,6 +35,9 @@ namespace Fhi.Smittestopp.Verification.Server
                 .AddCheck<MsisHealthCheck>("msis_health_check");
 
             services.AddSingleton<IActionContextAccessor, ActionContextAccessor>();
+
+            services.AddDataProtection()
+                .PersistKeysToDbContext<VerificationDbContext>();
 
             services.AddControllersWithViews();
             services.Configure<ForwardedHeadersOptions>(options =>

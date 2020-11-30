@@ -8,6 +8,12 @@ on:
 
 env:
   DOTNET_VERSION: 3.1.301
+  OCTOPUS_SERVER: ${{ secrets.API_OCT_NHN_NO_SERVER }}
+  OCTOPUS_APIKEY: ${{ secrets.OCTOPUS_APIKEY }}
+  OCTOPUS_PROJECT_NAME: ${{ secrets.API_OCT_NHN_NO_PROJECT }}
+  OCTOPUS_SPACE_NAME: ${{ secrets.API_OCT_NHN_NO_SPACE }}
+  OCTOPUS_ENVIRONMENT_NAME: Test
+  PACKAGE_VERSION: ${{ github.ref }}
 
 jobs:
   build:
@@ -55,3 +61,19 @@ jobs:
         asset_path: ./Fhi.Smittestopp.Verification.Server.zip
         asset_name: Fhi.Smittestopp.Verification.Server.zip
         asset_content_type: application/zip
+
+    # Create octopus package
+    - name: Install Octopus CLI
+      run: |
+        sudo apt update && sudo apt install --no-install-recommends gnupg curl ca-certificates apt-transport-https && \
+        curl -sSfL https://apt.octopus.com/public.key | sudo apt-key add - && \
+        sudo sh -c "echo deb https://apt.octopus.com/ stable main > /etc/apt/sources.list.d/octopus.com.list" && \
+        sudo apt update && sudo apt install octopuscli 
+
+    - name: Package and Push to Octopus
+      run: |
+        octo pack --id="$OCTOPUS_PROJECT_NAME" --format="Zip" --version="$PACKAGE_VERSION" --basePath="./published-app" --outFolder="./packages"
+        octo push --package="./packages/$OCTOPUS_PROJECT_NAME.$PACKAGE_VERSION.zip" --server="$OCTOPUS_SERVER" --apiKey="$OCTOPUS_APIKEY"
+
+    - name: Create and Deploy Release
+      run: octo create-release --project="$OCTOPUS_PROJECT_NAME" --packageVersion="$PACKAGE_VERSION" --releaseNumber="$PACKAGE_VERSION" --server="$OCTOPUS_SERVER" --apiKey="$OCTOPUS_APIKEY" --space="$OCTOPUS_SPACE_NAME" --deployTo="$OCTOPUS_ENVIRONMENT_NAME"

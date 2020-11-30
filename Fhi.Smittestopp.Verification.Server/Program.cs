@@ -34,7 +34,7 @@ namespace Fhi.Smittestopp.Verification.Server
             if (logAnalyticsConfig.Enabled)
             {
                 loggerConfig
-                    .WriteTo.AzureAnalytics(logAnalyticsConfig.WorkspaceId, logAnalyticsConfig.PrimaryKey);
+                    .WriteTo.AzureAnalytics(logAnalyticsConfig.WorkspaceId, logAnalyticsConfig.PrimaryKey, logName: "Fhi.Smittestopp.Verification.Logs");
             }
 
             return loggerConfig;

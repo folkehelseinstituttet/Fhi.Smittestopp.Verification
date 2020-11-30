@@ -13,7 +13,6 @@ env:
   OCTOPUS_PROJECT_NAME: ${{ secrets.API_OCT_NHN_NO_PROJECT }}
   OCTOPUS_SPACE_NAME: ${{ secrets.API_OCT_NHN_NO_SPACE }}
   OCTOPUS_ENVIRONMENT_NAME: Test
-  PACKAGE_VERSION: ${{ github.ref }}
 
 jobs:
   build:
@@ -69,6 +68,13 @@ jobs:
         curl -sSfL https://apt.octopus.com/public.key | sudo apt-key add - && \
         sudo sh -c "echo deb https://apt.octopus.com/ stable main > /etc/apt/sources.list.d/octopus.com.list" && \
         sudo apt update && sudo apt install octopuscli 
+
+    # Set PACKAGE_VERSION as: refs/tags/v0.1.2 => 0.2.1
+    - name: Set version env
+      id: set-version
+      run: |
+        vn=$(echo ${{ github.ref }} | cut -dv -f2)
+        echo "::set-env name=PACKAGE_VERSION::$vn"
 
     - name: Package and Push to Octopus
       run: |

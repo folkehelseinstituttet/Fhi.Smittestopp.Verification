@@ -69,17 +69,17 @@ jobs:
         sudo sh -c "echo deb https://apt.octopus.com/ stable main > /etc/apt/sources.list.d/octopus.com.list" && \
         sudo apt update && sudo apt install octopuscli 
 
-    # Set PACKAGE_VERSION as: refs/tags/v0.1.2 => 0.2.1
+    # Set PACKAGE_VERSION as: refs/tags/v0.1.2 => 0.1.2
     - name: Set version env
-      id: set-version
+      id: setVersion
       run: |
         vn=$(echo ${{ github.ref }} | cut -dv -f2)
-        echo "::set-env name=PACKAGE_VERSION::$vn"
+        echo "::set-output name=pckVersion::$vn"
 
     - name: Package and Push to Octopus
       run: |
-        octo pack --id="$OCTOPUS_PROJECT_NAME" --format="Zip" --version="$PACKAGE_VERSION" --basePath="./published-app" --outFolder="./packages"
-        octo push --package="./packages/$OCTOPUS_PROJECT_NAME.$PACKAGE_VERSION.zip" --server="$OCTOPUS_SERVER" --apiKey="$OCTOPUS_APIKEY"
+        octo pack --id="$OCTOPUS_PROJECT_NAME" --format="Zip" --version="${{steps.setVersion.outputs.pckVersion}}" --basePath="./published-app" --outFolder="./packages"
+        octo push --package="./packages/$OCTOPUS_PROJECT_NAME.${{steps.setVersion.outputs.pckVersion}}.zip" --server="$OCTOPUS_SERVER" --apiKey="$OCTOPUS_APIKEY"
 
     - name: Create and Deploy Release
-      run: octo create-release --project="$OCTOPUS_PROJECT_NAME" --packageVersion="$PACKAGE_VERSION" --releaseNumber="$PACKAGE_VERSION" --server="$OCTOPUS_SERVER" --apiKey="$OCTOPUS_APIKEY" --space="$OCTOPUS_SPACE_NAME" --deployTo="$OCTOPUS_ENVIRONMENT_NAME"
+      run: octo create-release --project="$OCTOPUS_PROJECT_NAME" --packageVersion="${{steps.setVersion.outputs.pckVersion}}" --releaseNumber="${{steps.setVersion.outputs.pckVersion}}" --server="$OCTOPUS_SERVER" --apiKey="$OCTOPUS_APIKEY" --space="$OCTOPUS_SPACE_NAME" --deployTo="$OCTOPUS_ENVIRONMENT_NAME"

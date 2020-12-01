@@ -1,20 +1,16 @@
 ﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Fhi.Smittestopp.Verification.Domain.DataCleanup;
 using Fhi.Smittestopp.Verification.Domain.Interfaces;
-using Fhi.Smittestopp.Verification.Domain.Models;
-using Fhi.Smittestopp.Verification.Domain.Verifications;
-using FluentAssertions;
 using Moq;
 using Moq.AutoMock;
 using NUnit.Framework;
-using Optional;
-using Range = Moq.Range;
 
-namespace Fhi.Smittestopp.Verification.Tests.Domain.Verifications
+namespace Fhi.Smittestopp.Verification.Tests.Domain.DataCleanup
 {
     [TestFixture]
-    public class DeleteExpiredRecordsTests
+    public class DeleteExpiredDataTests
     {
         [Test]
         public async Task Handle_DeletesWithCutoffFromLimitConfig()
@@ -29,17 +25,17 @@ namespace Fhi.Smittestopp.Verification.Tests.Domain.Verifications
             automocker.Setup<IVerificationLimit, IVerificationLimitConfig>(x => x.Config)
                 .Returns(limitConfigMock.Object);
 
-            var target = automocker.CreateInstance<DeleteExpiredRecords.Handler>();
+            var target = automocker.CreateInstance<DeleteExpiredData.Handler>();
 
             var testStart = DateTime.Now;
-            await target.Handle(new DeleteExpiredRecords.Command(), new CancellationToken());
+            await target.Handle(new DeleteExpiredData.Command(), new CancellationToken());
             var testEnd = DateTime.Now;
 
             automocker.Verify<IVerificationRecordsRepository>(x => 
                 x.DeleteExpiredRecords(It.IsInRange(
                     testStart - verLimitDuration,
                     testEnd - verLimitDuration,
-                    Range.Inclusive)));
+                    Moq.Range.Inclusive)));
         }
     }
 }

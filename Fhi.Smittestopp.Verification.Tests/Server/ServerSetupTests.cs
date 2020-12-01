@@ -28,7 +28,9 @@ namespace Fhi.Smittestopp.Verification.Tests.Server
                             // Force mocked MSIS-integration to make tests runnable outside FHIs environments
                             ["msis:mock"] = "True",
                             // Force dev signing credentials
-                            ["signingCredentials:useDevSigningCredentials"] = "True"
+                            ["signingCredentials:useDevSigningCredentials"] = "True",
+                            // Disable background service for data cleanup in tests
+                            ["cleanupTask:enabled"] = "False"
                         });
                 });
             });

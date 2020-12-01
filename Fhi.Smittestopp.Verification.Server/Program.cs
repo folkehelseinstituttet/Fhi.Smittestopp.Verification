@@ -1,5 +1,7 @@
-﻿using Microsoft.AspNetCore.Hosting;
+﻿using Fhi.Smittestopp.Verification.Server.BackgroundServices;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Serilog;
 
@@ -18,6 +20,16 @@ namespace Fhi.Smittestopp.Verification.Server
                 .ConfigureWebHostDefaults(webBuilder =>
                 {
                     webBuilder.UseStartup<Startup>();
+                })
+                .ConfigureServices((hostContext, services) =>
+                {
+                    // Adding hostedservices here to ensure DB-migrations are executed first
+                    var cleanupTaskConfig = hostContext.Configuration.GetSection("cleanupTask");
+                    if (cleanupTaskConfig["enabled"] == "True")
+                    {
+                        services.Configure<DeleteExpiredDataBackgroundService.Config>(cleanupTaskConfig);
+                        services.AddHostedService<DeleteExpiredDataBackgroundService>();
+                    }
                 });
 
     }

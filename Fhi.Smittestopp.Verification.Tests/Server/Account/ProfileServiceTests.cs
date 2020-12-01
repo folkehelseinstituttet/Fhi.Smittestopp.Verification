@@ -2,6 +2,7 @@
 using System.Security.Claims;
 using System.Threading;
 using System.Threading.Tasks;
+using Fhi.Smittestopp.Verification.Domain.AnonymousTokens;
 using Fhi.Smittestopp.Verification.Domain.Constants;
 using Fhi.Smittestopp.Verification.Domain.Interfaces;
 using Fhi.Smittestopp.Verification.Domain.Models;
@@ -10,6 +11,7 @@ using Fhi.Smittestopp.Verification.Server.Account;
 using FluentAssertions;
 using IdentityServer4.Models;
 using MediatR;
+using Microsoft.Extensions.Options;
 using Moq;
 using Moq.AutoMock;
 using NUnit.Framework;
@@ -46,6 +48,11 @@ namespace Fhi.Smittestopp.Verification.Tests.Server.Account
                 {
                     PositiveTestDate = DateTime.Today.AddDays(-1).Some()
                 }, new VerificationRecord[0], verificationLimit.Object));
+            automocker
+                .Setup<IOptions<AnonymousTokensConfig>, AnonymousTokensConfig>(x => x.Value)
+                .Returns(new AnonymousTokensConfig
+                {
+                });
 
             var context = new ProfileDataRequestContext
             {
@@ -75,6 +82,11 @@ namespace Fhi.Smittestopp.Verification.Tests.Server.Account
             automocker
                 .Setup<IMediator, Task<VerificationResult>>(x => x.Send(It.IsAny<VerifyPinUser.Command>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(new VerificationResult(new PositiveTestResult(), new VerificationRecord[0], verificationLimit.Object));
+            automocker
+                .Setup<IOptions<AnonymousTokensConfig>, AnonymousTokensConfig>(x => x.Value)
+                .Returns(new AnonymousTokensConfig
+                {
+                });
 
             var context = new ProfileDataRequestContext
             {

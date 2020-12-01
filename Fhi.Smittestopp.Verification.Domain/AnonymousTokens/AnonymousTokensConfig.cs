@@ -3,5 +3,6 @@
     public class AnonymousTokensConfig
     {
         public bool Enabled { get; set; }
+        public string CertId { get; set; }
     }
 }

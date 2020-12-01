@@ -16,6 +16,7 @@ namespace Fhi.Smittestopp.Verification.Domain
                 .Configure<VerifyIdentifiedUser.Config>(config.GetSection("verification"))
                 .Configure<VerificationLimitConfig>(config.GetSection("verificationLimit"))
                 .Configure<AnonymousTokensConfig>(config.GetSection("anonymousTokens"))
+                .AddSingleton<IAnonymousTokensCertLocator, AnonymousTokensCertLocator>()
                 .AddTransient<IVerificationLimit, VerificationLimit>()
                 .Configure<OneWayPseudonymFactory.Config>(config.GetSection("pseudonyms"))
                 .AddTransient<IPseudonymFactory, OneWayPseudonymFactory>(); ;

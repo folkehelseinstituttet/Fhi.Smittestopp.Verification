@@ -35,7 +35,7 @@ namespace Fhi.Smittestopp.Verification.Persistence.Repositories
                 .Where(x => x.JwtTokenId == jwtId)
                 .ToListAsync();
 
-            return entities.Select(x => new AnonymousTokenIssueRecord(x.JwtTokenId, x.JwtTokenExpiry));
+            return entities.Select(x => new AnonymousTokenIssueRecord(x.JwtTokenId, x.JwtTokenExpiry.UtcDateTime));
         }
 
         public async Task<int> DeleteExpiredRecords()

@@ -30,6 +30,13 @@ namespace Fhi.Smittestopp.Verification.Server
                 .Enrich.FromLogContext()
                 .WriteTo.Console();
 
+            var fileLogConfig = config.GetSection("logFile").Get<LogFileConfig>();
+            if (fileLogConfig.Enabled)
+            {
+                loggerConfig
+                    .WriteTo.File(fileLogConfig.Filename, rollingInterval: RollingInterval.Day);
+            }
+
             var logAnalyticsConfig = config.GetSection("logAnalytics").Get<LogAnalyticsConfig>();
             if (logAnalyticsConfig.Enabled)
             {
@@ -46,5 +53,11 @@ namespace Fhi.Smittestopp.Verification.Server
         public bool Enabled { get; set; }
         public string WorkspaceId { get; set; }
         public string PrimaryKey { get; set; }
+    }
+
+    public class LogFileConfig
+    {
+        public bool Enabled { get; set; }
+        public string Filename { get; set; } = "log.txt";
     }
 }

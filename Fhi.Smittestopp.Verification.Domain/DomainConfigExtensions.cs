@@ -1,4 +1,5 @@
-﻿using Fhi.Smittestopp.Verification.Domain.Factories;
+﻿using Fhi.Smittestopp.Verification.Domain.AnonymousTokens;
+using Fhi.Smittestopp.Verification.Domain.Factories;
 using Fhi.Smittestopp.Verification.Domain.Interfaces;
 using Fhi.Smittestopp.Verification.Domain.Models;
 using Fhi.Smittestopp.Verification.Domain.Users;
@@ -14,6 +15,7 @@ namespace Fhi.Smittestopp.Verification.Domain
             return services
                 .Configure<VerifyIdentifiedUser.Config>(config.GetSection("verification"))
                 .Configure<VerificationLimitConfig>(config.GetSection("verificationLimit"))
+                .Configure<AnonymousTokensConfig>(config.GetSection("anonymousTokens"))
                 .AddTransient<IVerificationLimit, VerificationLimit>()
                 .Configure<OneWayPseudonymFactory.Config>(config.GetSection("pseudonyms"))
                 .AddTransient<IPseudonymFactory, OneWayPseudonymFactory>(); ;

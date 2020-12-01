@@ -13,7 +13,9 @@ namespace Fhi.Smittestopp.Verification.Persistence
         {
             services.AddDbContext<VerificationDbContext>(options => options.UseSqlOrInMemory(connectionString));
 
-            return services.AddTransient<IVerificationRecordsRepository, VerificationRecordsRepository>();
+            return services
+                .AddTransient<IVerificationRecordsRepository, VerificationRecordsRepository>()
+                .AddTransient<IAnonymousTokenIssueRecordRepository, AnonymousTokenIssueRecordRepository>();
         }
 
         public static DbContextOptionsBuilder UseSqlOrInMemory(this DbContextOptionsBuilder options, string connectionString, Action<SqlServerDbContextOptionsBuilder> optionsAction = null)

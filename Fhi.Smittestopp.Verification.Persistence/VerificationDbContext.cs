@@ -11,6 +11,7 @@ namespace Fhi.Smittestopp.Verification.Persistence
         }
 
         public DbSet<VerificationRecordEntity> VerificationRecords { get; set; }
+        public DbSet<AnonymousTokenIssueRecordEntity> AnonymousTokenIssueRecords { get; set; }
         public DbSet<DataProtectionKey> DataProtectionKeys { get; set; }
     }
 }

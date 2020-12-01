@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
+using Fhi.Smittestopp.Verification.Domain.AnonymousTokens;
 using Fhi.Smittestopp.Verification.Domain.Constants;
 using Fhi.Smittestopp.Verification.Domain.Models;
 using Fhi.Smittestopp.Verification.Domain.Users;
@@ -10,6 +11,7 @@ using IdentityServer4.Models;
 using IdentityServer4.Services;
 using MediatR;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Optional.Async.Extensions;
 using Optional.Collections;
 
@@ -19,11 +21,14 @@ namespace Fhi.Smittestopp.Verification.Server.Account
     {
         private readonly IMediator _mediator;
         private readonly ILogger<ProfileService> _logger;
+        private readonly AnonymousTokensConfig _anonymousTokensConfig
+            ;
 
-        public ProfileService(IMediator mediator, ILogger<ProfileService> logger)
+        public ProfileService(IMediator mediator, ILogger<ProfileService> logger, IOptions<AnonymousTokensConfig> anonymousTokensConfig)
         {
             _mediator = mediator;
             _logger = logger;
+            _anonymousTokensConfig = anonymousTokensConfig.Value;
         }
 
         public async Task GetProfileDataAsync(ProfileDataRequestContext context)
@@ -71,7 +76,7 @@ namespace Fhi.Smittestopp.Verification.Server.Account
                         },
                         some: natIdent => _mediator.Send(new VerifyIdentifiedUser.Command(natIdent.Value, pseudonym)));
 
-                    verificationClaims.AddRange(verificationResult.GetVerificationClaims());
+                    verificationClaims.AddRange(verificationResult.GetVerificationClaims(_anonymousTokensConfig.Enabled));
                 }
                 catch (Exception e)
                 {

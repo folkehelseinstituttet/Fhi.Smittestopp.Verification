@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Net;
 using System.Net.Http;
+using System.Security.Claims;
 using System.Threading;
 using System.Threading.Tasks;
 using IdentityServer4.Configuration;
@@ -18,7 +19,21 @@ namespace Fhi.Smittestopp.Verification.Tests.TestUtils
 {
     public static class TestExtensions
     {
-        public static T AddTestControllerContext<T>(this T controller, AutoMocker automock = null) where T : Controller
+        public static T EnsureTestContextAdded<T>(this T controller) where T : ControllerBase
+        {
+            if (controller.ControllerContext == null)
+            {
+                controller.ControllerContext = new ControllerContext();
+            }
+
+            if (controller.ControllerContext.HttpContext == null)
+            {
+                controller.ControllerContext.HttpContext = new DefaultHttpContext();
+            }
+            return controller;
+        }
+
+        public static T AddTestControllerContext<T>(this T controller, AutoMocker automock = null) where T : ControllerBase
         {
             var isOptions = new IdentityServerOptions
             {
@@ -35,14 +50,16 @@ namespace Fhi.Smittestopp.Verification.Tests.TestUtils
             requestServices.Setup(x => x.GetService(typeof(ITempDataDictionaryFactory))).Returns(tempDataDictionaryFactory.Object);
             requestServices.Setup(x => x.GetService(typeof(IUrlHelperFactory))).Returns(() => automock?.Get<IUrlHelperFactory>());
 
-            controller.ControllerContext = new ControllerContext
-            {
-                HttpContext = new DefaultHttpContext
-                {
-                    RequestServices = requestServices.Object
-                }
-            };
+            controller.EnsureTestContextAdded();
+            controller.ControllerContext.HttpContext.RequestServices = requestServices.Object;
 
+            return controller;
+        }
+
+        public static T SetUserForContext<T>(this T controller, ClaimsPrincipal principal) where T : ControllerBase
+        {
+            controller.EnsureTestContextAdded();
+            controller.ControllerContext.HttpContext.User = principal;
             return controller;
         }
 

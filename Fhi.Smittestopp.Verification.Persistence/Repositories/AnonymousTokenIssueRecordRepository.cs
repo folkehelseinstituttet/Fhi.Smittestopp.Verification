@@ -41,11 +41,11 @@ namespace Fhi.Smittestopp.Verification.Persistence.Repositories
         public async Task<int> DeleteExpiredRecords()
         {
             var recordsCutoff = DateTimeOffset.Now;
-            var entities = await _dbContext.VerificationRecords
-                .Where(x => x.VerifiedAtTime <= recordsCutoff)
+            var entities = await _dbContext.AnonymousTokenIssueRecords
+                .Where(x => x.JwtTokenExpiry <= recordsCutoff)
                 .ToListAsync();
 
-            _dbContext.VerificationRecords.RemoveRange(entities);
+            _dbContext.AnonymousTokenIssueRecords.RemoveRange(entities);
 
             await _dbContext.SaveChangesAsync();
 

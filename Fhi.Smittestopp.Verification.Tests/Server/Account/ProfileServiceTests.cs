@@ -6,6 +6,7 @@ using Fhi.Smittestopp.Verification.Domain.Constants;
 using Fhi.Smittestopp.Verification.Domain.Interfaces;
 using Fhi.Smittestopp.Verification.Domain.Models;
 using Fhi.Smittestopp.Verification.Domain.Users;
+using Fhi.Smittestopp.Verification.Domain.Verifications;
 using Fhi.Smittestopp.Verification.Server.Account;
 using FluentAssertions;
 using IdentityServer4.Models;

@@ -6,7 +6,7 @@ using Fhi.Smittestopp.Verification.Domain.Models;
 using MediatR;
 using Microsoft.Extensions.Logging;
 
-namespace Fhi.Smittestopp.Verification.Domain.Users
+namespace Fhi.Smittestopp.Verification.Domain.Verifications
 {
     public class VerifyPinUser
     {
@@ -22,11 +22,11 @@ namespace Fhi.Smittestopp.Verification.Domain.Users
 
         public class Handler : IRequestHandler<Command, VerificationResult>
         {
-            private readonly ILogger<CreateFromExternalAuthentication> _logger;
+            private readonly ILogger<VerifyPinUser> _logger;
             private readonly IVerificationLimit _verificationLimit;
             private readonly IVerificationRecordsRepository _verificationRecordsRepository;
 
-            public Handler(ILogger<CreateFromExternalAuthentication> logger, IVerificationLimit verificationLimit, IVerificationRecordsRepository verificationRecordsRepository)
+            public Handler(ILogger<VerifyPinUser> logger, IVerificationLimit verificationLimit, IVerificationRecordsRepository verificationRecordsRepository)
             {
                 _logger = logger;
                 _verificationLimit = verificationLimit;

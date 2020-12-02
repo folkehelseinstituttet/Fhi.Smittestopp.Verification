@@ -24,12 +24,7 @@ namespace Fhi.Smittestopp.Verification.Server
                 .ConfigureServices((hostContext, services) =>
                 {
                     // Adding hostedservices here to ensure DB-migrations are executed first
-                    var cleanupTaskConfig = hostContext.Configuration.GetSection("cleanupTask");
-                    if (cleanupTaskConfig["enabled"] == "True")
-                    {
-                        services.Configure<DeleteExpiredDataBackgroundService.Config>(cleanupTaskConfig);
-                        services.AddHostedService<DeleteExpiredDataBackgroundService>();
-                    }
+                    services.AddEnabledBackgroundServices(hostContext.Configuration);
                 });
 
     }
@@ -57,6 +52,19 @@ namespace Fhi.Smittestopp.Verification.Server
             }
 
             return loggerConfig;
+        }
+
+        public static IServiceCollection AddEnabledBackgroundServices(this IServiceCollection services, IConfiguration config)
+        {
+            // Adding hostedservices here to ensure DB-migrations are executed first
+            var cleanupTaskConfig = config.GetSection("cleanupTask");
+            if (cleanupTaskConfig["enabled"] == "True")
+            {
+                services.Configure<DeleteExpiredDataBackgroundService.Config>(cleanupTaskConfig);
+                services.AddHostedService<DeleteExpiredDataBackgroundService>();
+            }
+
+            return services;
         }
     }
 

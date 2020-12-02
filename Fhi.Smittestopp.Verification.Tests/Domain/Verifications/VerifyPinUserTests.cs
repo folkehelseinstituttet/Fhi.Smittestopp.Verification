@@ -4,14 +4,14 @@ using System.Threading;
 using System.Threading.Tasks;
 using Fhi.Smittestopp.Verification.Domain.Interfaces;
 using Fhi.Smittestopp.Verification.Domain.Models;
-using Fhi.Smittestopp.Verification.Domain.Users;
+using Fhi.Smittestopp.Verification.Domain.Verifications;
 using FluentAssertions;
 using Moq;
 using Moq.AutoMock;
 using NUnit.Framework;
 using Optional;
 
-namespace Fhi.Smittestopp.Verification.Tests.Domain.Users
+namespace Fhi.Smittestopp.Verification.Tests.Domain.Verifications
 {
     public class VerifyPinUserTests
     {

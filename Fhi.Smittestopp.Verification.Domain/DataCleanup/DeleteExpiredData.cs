@@ -5,12 +5,13 @@ using Fhi.Smittestopp.Verification.Domain.Interfaces;
 using MediatR;
 using Microsoft.Extensions.Logging;
 
-namespace Fhi.Smittestopp.Verification.Domain.Verifications
+namespace Fhi.Smittestopp.Verification.Domain.DataCleanup
 {
-    public class DeleteExpiredRecords
+    public class DeleteExpiredData
     {
         public class Command : IRequest
         {
+
         }
 
         public class Handler : IRequestHandler<Command>
@@ -28,10 +29,16 @@ namespace Fhi.Smittestopp.Verification.Domain.Verifications
 
             public async Task<Unit> Handle(Command request, CancellationToken cancellationToken)
             {
+                await DeleteExpiredVerificationRecords();
+
+                return Unit.Value;
+            }
+
+            private async Task DeleteExpiredVerificationRecords()
+            {
                 var cutoff = DateTime.Now - _verificationLimit.Config.MaxLimitDuration;
                 var deleteCount = await _verificationRecordsRepository.DeleteExpiredRecords(cutoff);
                 _logger.LogInformation("Deleted {deleteCount} expired records", deleteCount);
-                return Unit.Value;
             }
         }
     }

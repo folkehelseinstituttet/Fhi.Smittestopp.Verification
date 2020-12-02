@@ -11,7 +11,7 @@ using Microsoft.Extensions.Options;
 using Optional;
 using Optional.Async.Extensions;
 
-namespace Fhi.Smittestopp.Verification.Domain.Users
+namespace Fhi.Smittestopp.Verification.Domain.Verifications
 {
     public class VerifyIdentifiedUser
     {
@@ -45,12 +45,12 @@ namespace Fhi.Smittestopp.Verification.Domain.Users
         public class Handler : IRequestHandler<Command, VerificationResult>
         {
             private readonly IMsisLookupService _msisLookupService;
-            private readonly ILogger<CreateFromExternalAuthentication> _logger;
+            private readonly ILogger<VerifyIdentifiedUser> _logger;
             private readonly IVerificationLimit _verificationLimit;
             private readonly IVerificationRecordsRepository _verificationRecordsRepository;
             private readonly Config _config;
 
-            public Handler(IMsisLookupService msisLookupService, ILogger<CreateFromExternalAuthentication> logger, IVerificationLimit verificationLimit, IVerificationRecordsRepository verificationRecordsRepository, IOptions<Config> config)
+            public Handler(IMsisLookupService msisLookupService, ILogger<VerifyIdentifiedUser> logger, IVerificationLimit verificationLimit, IVerificationRecordsRepository verificationRecordsRepository, IOptions<Config> config)
             {
                 _msisLookupService = msisLookupService;
                 _logger = logger;

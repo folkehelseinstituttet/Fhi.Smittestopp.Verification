@@ -7,6 +7,7 @@ using Fhi.Smittestopp.Verification.Domain.AnonymousTokens;
 using Fhi.Smittestopp.Verification.Domain.Constants;
 using Fhi.Smittestopp.Verification.Domain.Models;
 using Fhi.Smittestopp.Verification.Domain.Users;
+using Fhi.Smittestopp.Verification.Domain.Verifications;
 using IdentityServer4.Models;
 using IdentityServer4.Services;
 using MediatR;

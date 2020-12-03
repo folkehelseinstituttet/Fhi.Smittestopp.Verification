@@ -78,6 +78,7 @@ namespace Fhi.Smittestopp.Verification.Server
             // Add MediatR and all handlers from specified assemplies
             services.AddMediatR(typeof(CreateFromExternalAuthentication).Assembly);
 
+            services.Configure<InteractionConfig>(Configuration.GetSection("interaction"));
             services.AddTransient<IAccountService, AccountService>();
             services.AddTransient<IExternalService, ExternalService>();
 
@@ -96,6 +97,10 @@ namespace Fhi.Smittestopp.Verification.Server
             if (Environment.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
+            }
+            else
+            {
+                app.UseExceptionHandler("/home/error");
             }
 
             app.UseForwardedHeaders();

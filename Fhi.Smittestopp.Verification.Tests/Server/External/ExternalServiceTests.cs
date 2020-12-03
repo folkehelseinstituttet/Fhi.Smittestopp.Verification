@@ -4,6 +4,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Fhi.Smittestopp.Verification.Domain.Models;
 using Fhi.Smittestopp.Verification.Domain.Users;
+using Fhi.Smittestopp.Verification.Server;
 using Fhi.Smittestopp.Verification.Server.ExternalController;
 using Fhi.Smittestopp.Verification.Server.ExternalController.Models;
 using FluentAssertions;
@@ -14,6 +15,7 @@ using MediatR;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Routing;
+using Microsoft.Extensions.Options;
 using Moq;
 using Moq.AutoMock;
 using NUnit.Framework;
@@ -215,6 +217,13 @@ namespace Fhi.Smittestopp.Verification.Tests.Server.External
 
             var automocker = new AutoMocker();
 
+            automocker
+                .Setup<IOptions<InteractionConfig>, InteractionConfig>(x => x.Value)
+                .Returns(new InteractionConfig
+                {
+                    RequireAuthorizationRequest = false
+                });
+
             automocker.Setup<IMediator, Task<IdentifiedUser>>(x =>
                 x.Send(It.Is<CreateFromExternalAuthentication.Command>(c => 
                     c.Provider == "ext-scheme" &&
@@ -258,6 +267,13 @@ namespace Fhi.Smittestopp.Verification.Tests.Server.External
                     x.Send(It.IsAny<CreateFromExternalAuthentication.Command>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(newInternalUser);
 
+            automocker
+                .Setup<IOptions<InteractionConfig>, InteractionConfig>(x => x.Value)
+                .Returns(new InteractionConfig
+                {
+                    RequireAuthorizationRequest = false
+                });
+
             automocker.Setup<IIdentityServerInteractionService, Task<AuthorizationRequest>>(x =>
                     x.GetAuthorizationContextAsync("~/authorize?requestId=123"))
                 .ReturnsAsync(new AuthorizationRequest
@@ -279,7 +295,6 @@ namespace Fhi.Smittestopp.Verification.Tests.Server.External
             var innerResult = result.ValueOrFailure();
             innerResult.UseNativeClientRedirect.Should().BeTrue();
         }
-
 
         [Test]
         public async Task ProcessExternalAuthentication_SuccessfulResultWithExtInfo_AddsRelevantInfoAsClaims()
@@ -312,6 +327,13 @@ namespace Fhi.Smittestopp.Verification.Tests.Server.External
                     x.Send(It.IsAny<CreateFromExternalAuthentication.Command>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(newInternalUser);
 
+            automocker
+                .Setup<IOptions<InteractionConfig>, InteractionConfig>(x => x.Value)
+                .Returns(new InteractionConfig
+                {
+                    RequireAuthorizationRequest = false
+                });
+
             automocker.Setup<IIdentityServerInteractionService, Task<AuthorizationRequest>>(x =>
                     x.GetAuthorizationContextAsync("~/authorize?requestId=123"))
                 .ReturnsAsync(new AuthorizationRequest
@@ -334,6 +356,50 @@ namespace Fhi.Smittestopp.Verification.Tests.Server.External
             innerResult.ExternalIdToken.Should().Be(idToken.Some());
             innerResult.IsUser.AdditionalClaims.Should()
                 .Contain(c => c.Type == JwtClaimTypes.SessionId && c.Value == sessionId);
+        }
+
+        [Test]
+        public async Task ProcessExternalAuthentication_AuthRequestRequiredButNotAvailable_ReturnsErrorResult()
+        {
+            //Arrange
+            var user = new ClaimsPrincipal(new ClaimsIdentity(new Claim[0]));
+            var authProps = new AuthenticationProperties
+            {
+                Items =
+                {
+                    {"scheme", "ext-scheme"},
+                    {"returnUrl", "~/authorize?requestId=123"}
+                }
+            };
+            var authTicket = new AuthenticationTicket(user, authProps, "ext-scheme");
+            var successfulAuthResult = AuthenticateResult.Success(authTicket);
+
+            var newInternalUser = new IdentifiedUser("08089403198", "pseudo-1");
+
+            var automocker = new AutoMocker();
+
+            automocker.Setup<IMediator, Task<IdentifiedUser>>(x =>
+                    x.Send(It.IsAny<CreateFromExternalAuthentication.Command>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(newInternalUser);
+
+            automocker
+                .Setup<IOptions<InteractionConfig>, InteractionConfig>(x => x.Value)
+                .Returns(new InteractionConfig
+                {
+                    RequireAuthorizationRequest = true
+                });
+
+            automocker.Setup<IIdentityServerInteractionService, Task<AuthorizationRequest>>(x =>
+                    x.GetAuthorizationContextAsync("~/authorize?requestId=123"))
+                .ReturnsAsync((AuthorizationRequest)null);
+
+            var target = automocker.CreateInstance<ExternalService>();
+
+            //Act
+            var result = await target.ProcessExternalAuthentication(successfulAuthResult);
+
+            //Assert
+            result.Should().Be(Option.None<ExtAuthenticationResult, string>("A valid authorization request is required for login."));
         }
     }
 }

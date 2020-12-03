@@ -3,6 +3,7 @@ using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using Fhi.Smittestopp.Verification.Domain.Users;
+using Fhi.Smittestopp.Verification.Server.Account.Models;
 using Fhi.Smittestopp.Verification.Server.ExternalController.Models;
 using IdentityModel;
 using IdentityServer4;
@@ -13,6 +14,7 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.AspNetCore.Mvc.Routing;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Optional;
 
 namespace Fhi.Smittestopp.Verification.Server.ExternalController
@@ -31,8 +33,9 @@ namespace Fhi.Smittestopp.Verification.Server.ExternalController
         private readonly ILogger<ExternalService> _logger;
         private readonly IMediator _mediator;
         private readonly IEventService _events;
+        private readonly IOptions<InteractionConfig> _interactionConfig;
 
-        public ExternalService(IUrlHelperFactory urlHelperFactory, IActionContextAccessor actionContextAccessor, IIdentityServerInteractionService interaction, ILogger<ExternalService> logger, IMediator mediator, IEventService events)
+        public ExternalService(IUrlHelperFactory urlHelperFactory, IActionContextAccessor actionContextAccessor, IIdentityServerInteractionService interaction, ILogger<ExternalService> logger, IMediator mediator, IEventService events, IOptions<InteractionConfig> interactionConfig)
         {
             _urlHelperFactory = urlHelperFactory;
             _actionContextAccessor = actionContextAccessor;
@@ -40,6 +43,7 @@ namespace Fhi.Smittestopp.Verification.Server.ExternalController
             _logger = logger;
             _mediator = mediator;
             _events = events;
+            _interactionConfig = interactionConfig;
         }
 
         public Option<ExtChallengeResult, string> CreateChallenge(ExtChallengeRequest request)
@@ -72,6 +76,16 @@ namespace Fhi.Smittestopp.Verification.Server.ExternalController
 
             _logger.LogDebug("Processing external login callback");
 
+            // retrieve return URL
+            var returnUrl = extAuthResult.Properties.Items["returnUrl"] ?? "~/";
+            // check if external login is in the context of an OIDC request
+            var context = await _interaction.GetAuthorizationContextAsync(returnUrl);
+
+            if (_interactionConfig.Value.RequireAuthorizationRequest && context == null)
+            {
+                return Option.None<ExtAuthenticationResult, string>("A valid authorization request is required for login.");
+            }
+
             var provider = extAuthResult.Properties.Items["scheme"];
             var providerClaims = extAuthResult.Principal.Claims.ToList();
 
@@ -99,10 +113,6 @@ namespace Fhi.Smittestopp.Verification.Server.ExternalController
                 AdditionalClaims = internalUser.GetCustomClaims().Concat(additionalLocalClaims).ToList()
             };
 
-            // retrieve return URL
-            var returnUrl = extAuthResult.Properties.Items["returnUrl"] ?? "~/";
-            // check if external login is in the context of an OIDC request
-            var context = await _interaction.GetAuthorizationContextAsync(returnUrl);
             var useNativeRedirect = context?.IsNativeClient() ?? false;
 
             var externalIdToken = extAuthResult.Properties.GetTokenValue("id_token").SomeNotNull();

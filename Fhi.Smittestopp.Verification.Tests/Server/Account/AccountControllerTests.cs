@@ -25,7 +25,7 @@ namespace Fhi.Smittestopp.Verification.Tests.Server.Account
         {
             var automocker = new AutoMocker();
 
-            automocker.Setup<IAccountService, Task<LoginOptions>>(x =>
+            automocker.Setup<IAccountService, Task<Option<LoginOptions, string>>>(x =>
                     x.GetLoginOptions("/auth/?authRequest=123"))
                 .ReturnsAsync(new LoginOptions
                 {
@@ -38,7 +38,7 @@ namespace Fhi.Smittestopp.Verification.Tests.Server.Account
                             DisplayName = "An external provider"
                         }
                     }
-                });
+                }.Some<LoginOptions, string>());
 
             var target = automocker.CreateInstance<AccountController>();
 
@@ -59,7 +59,7 @@ namespace Fhi.Smittestopp.Verification.Tests.Server.Account
         {
             var automocker = new AutoMocker();
 
-            automocker.Setup<IAccountService, Task<LoginOptions>>(x =>
+            automocker.Setup<IAccountService, Task<Option<LoginOptions, string>>>(x =>
                     x.GetLoginOptions("/auth/?authRequest=123"))
                 .ReturnsAsync(new LoginOptions
                 {
@@ -77,7 +77,7 @@ namespace Fhi.Smittestopp.Verification.Tests.Server.Account
                             DisplayName = "External provider B"
                         }
                     }
-                });
+                }.Some<LoginOptions, string>());
 
             var target = automocker.CreateInstance<AccountController>();
 
@@ -96,17 +96,31 @@ namespace Fhi.Smittestopp.Verification.Tests.Server.Account
         }
 
         [Test]
+        public void Login_LoginOptionsFails_ThrowsException()
+        {
+            var automocker = new AutoMocker();
+
+            automocker.Setup<IAccountService, Task<Option<LoginOptions, string>>>(x =>
+                    x.GetLoginOptions("/auth/?authRequest=123"))
+                .ReturnsAsync(Option.None<LoginOptions, string>("rejected."));
+
+            var target = automocker.CreateInstance<AccountController>();
+
+            Assert.ThrowsAsync<Exception>(() => target.Login("/auth/?authRequest=123"));
+        }
+
+        [Test]
         public async Task Login_GivenInvalidModelState_ReturnsViewResult()
         {
             var automocker = new AutoMocker();
 
-            automocker.Setup<IAccountService, Task<LoginOptions>>(x =>
+            automocker.Setup<IAccountService, Task<Option<LoginOptions, string>>>(x =>
                     x.GetLoginOptions("/auth/?authRequest=123"))
                 .ReturnsAsync(new LoginOptions
                 {
                     EnableLocalLogin = true,
                     ExternalProviders = new ExternalProvider[0]
-                });
+                }.Some<LoginOptions, string>());
 
             var target = automocker.CreateInstance<AccountController>();
 
@@ -134,13 +148,13 @@ namespace Fhi.Smittestopp.Verification.Tests.Server.Account
         {
             var automocker = new AutoMocker();
 
-            automocker.Setup<IAccountService, Task<LoginOptions>>(x =>
+            automocker.Setup<IAccountService, Task<Option<LoginOptions, string>>>(x =>
                     x.GetLoginOptions("/auth/?authRequest=123"))
                 .ReturnsAsync(new LoginOptions
                 {
                     EnableLocalLogin = true,
                     ExternalProviders = new ExternalProvider[0]
-                });
+                }.Some<LoginOptions, string>());
 
             automocker.Setup<IAccountService, Task<Option<LocalLoginResult, string>>>(x =>
                     x.AttemptLocalLogin("12345", "/auth/?authRequest=123"))

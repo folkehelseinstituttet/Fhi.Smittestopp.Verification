@@ -1,3 +1,4 @@
+using System;
 using System.Threading.Tasks;
 using Fhi.Smittestopp.Verification.Server.Account.Models;
 using Fhi.Smittestopp.Verification.Server.Account.ViewModels;
@@ -33,7 +34,8 @@ namespace Fhi.Smittestopp.Verification.Server.Account
         public async Task<IActionResult> Login(string returnUrl)
         {
             // get login options for the current login request
-            var options = await _accountService.GetLoginOptions(returnUrl);
+            var options = (await _accountService.GetLoginOptions(returnUrl))
+                .ValueOr(e => throw new Exception(e));
 
             if (options.IsExternalLoginOnly)
             {
@@ -54,7 +56,8 @@ namespace Fhi.Smittestopp.Verification.Server.Account
             if (!ModelState.IsValid)
             {
                 // Invalid inputs provided, show form with errors from ModelState
-                var options = await _accountService.GetLoginOptions(model.ReturnUrl);
+                var options = (await _accountService.GetLoginOptions(model.ReturnUrl))
+                    .ValueOr(e => throw new Exception(e));
                 return View(new LoginViewModel(model.ReturnUrl, options)
                 {
                     PinCode = model.PinCode
@@ -68,7 +71,8 @@ namespace Fhi.Smittestopp.Verification.Server.Account
                     ModelState.AddModelError(string.Empty, error);
 
                     // Show login once again
-                    var options = await _accountService.GetLoginOptions(model.ReturnUrl);
+                    var options = (await _accountService.GetLoginOptions(model.ReturnUrl))
+                        .ValueOr(e => throw new Exception(e));
                     return View(new LoginViewModel(model.ReturnUrl, options)
                     {
                         PinCode = model.PinCode

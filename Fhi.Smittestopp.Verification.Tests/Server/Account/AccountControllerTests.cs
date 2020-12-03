@@ -144,6 +144,26 @@ namespace Fhi.Smittestopp.Verification.Tests.Server.Account
         }
 
         [Test]
+        public void Login_GivenInvalidModelStateAuthRequestRequiredMissing_ThrowsException()
+        {
+            var automocker = new AutoMocker();
+
+            automocker.Setup<IAccountService, Task<Option<LoginOptions, string>>>(x =>
+                    x.GetLoginOptions("/auth/?authRequest=123"))
+                .ReturnsAsync(Option.None<LoginOptions, string>("rejected."));
+
+            var target = automocker.CreateInstance<AccountController>();
+
+            target.ModelState.AddModelError("PinCode", "PinCode is required");
+
+            Assert.ThrowsAsync<Exception>(() => target.Login(new LoginInputModel
+            {
+                ReturnUrl = "/auth/?authRequest=123",
+                PinCode = null
+            }));
+        }
+
+        [Test]
         public async Task Login_GivenUnsuccessfulPinValidation_ReturnsViewResult()
         {
             var automocker = new AutoMocker();
@@ -177,6 +197,28 @@ namespace Fhi.Smittestopp.Verification.Tests.Server.Account
             vm.ReturnUrl.Should().Be("/auth/?authRequest=123");
             vm.EnableLocalLogin.Should().BeTrue();
             vm.VisibleExternalProviders.Should().BeEmpty();
+        }
+
+        [Test]
+        public void Login_GivenUnsuccessfulPinValidationAuthRequestRequiredMissing_ThrowsException()
+        {
+            var automocker = new AutoMocker();
+
+            automocker.Setup<IAccountService, Task<Option<LocalLoginResult, string>>>(x =>
+                    x.AttemptLocalLogin("12345", "/auth/?authRequest=123"))
+                .ReturnsAsync(Option.None<LocalLoginResult, string>("Not a valid pin"));
+
+            automocker.Setup<IAccountService, Task<Option<LoginOptions, string>>>(x =>
+                    x.GetLoginOptions("/auth/?authRequest=123"))
+                .ReturnsAsync(Option.None<LoginOptions, string>("rejected."));
+
+            var target = automocker.CreateInstance<AccountController>();
+
+            Assert.ThrowsAsync<Exception>(() => target.Login(new LoginInputModel
+            {
+                ReturnUrl = "/auth/?authRequest=123",
+                PinCode = "12345"
+            }));
         }
 
         [Test]

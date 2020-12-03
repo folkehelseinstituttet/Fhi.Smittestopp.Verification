@@ -92,6 +92,14 @@
                   "with": "src/environments/environment.nhntest.ts"
                 }
               ]
+            },
+            "nhnqa": {
+              "fileReplacements": [
+                {
+                  "replace": "src/environments/environment.ts",
+                  "with": "src/environments/environment.nhnqa.ts"
+                }
+              ]
             }
           }
         },
@@ -115,6 +123,9 @@
             },
             "nhntest": {
               "browserTarget": "test-client:build:nhntest"
+            },
+            "nhnqa": {
+              "browserTarget": "test-client:build:nhnqa"
             }
           }
         },

@@ -5,7 +5,6 @@ using System.Security.Claims;
 using System.Threading.Tasks;
 using Fhi.Smittestopp.Verification.Domain.Constants;
 using Fhi.Smittestopp.Verification.Domain.Models;
-using Fhi.Smittestopp.Verification.Domain.Users;
 using Fhi.Smittestopp.Verification.Domain.Verifications;
 using IdentityServer4.Models;
 using IdentityServer4.Services;
@@ -29,9 +28,9 @@ namespace Fhi.Smittestopp.Verification.Server.Account
 
         public async Task GetProfileDataAsync(ProfileDataRequestContext context)
         {
-            _logger.LogInformation("Retrieving claims for request: {requestedClaims}", context.RequestedClaimTypes);
+            _logger.LogDebug("Retrieving claims for request: {requestedClaims}", context.RequestedClaimTypes);
             context.AddRequestedClaims(await GetCustomClaims(context.Subject, context.RequestedClaimTypes));
-            _logger.LogInformation("Issued claims: {issuedClaims}", context.IssuedClaims.Select(c => c.Type).ToList());
+            _logger.LogDebug("Issued claims: {issuedClaims}", context.IssuedClaims.Select(c => c.Type).ToList());
         }
 
         public Task IsActiveAsync(IsActiveContext context)

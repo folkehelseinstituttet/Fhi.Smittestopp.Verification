@@ -3,6 +3,7 @@ using Fhi.Smittestopp.Verification.Domain.Users;
 using Fhi.Smittestopp.Verification.Msis;
 using Fhi.Smittestopp.Verification.Persistence;
 using Fhi.Smittestopp.Verification.Server.Account;
+using Fhi.Smittestopp.Verification.Server.ExternalController;
 using IdentityServer4.EntityFramework.DbContexts;
 using MediatR;
 using Microsoft.AspNetCore.Builder;
@@ -78,6 +79,7 @@ namespace Fhi.Smittestopp.Verification.Server
             services.AddMediatR(typeof(CreateFromExternalAuthentication).Assembly);
 
             services.AddTransient<IAccountService, AccountService>();
+            services.AddTransient<IExternalService, ExternalService>();
 
             services.AddDomainServices(Configuration.GetSection("common"));
 

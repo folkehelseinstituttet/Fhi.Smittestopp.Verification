@@ -117,7 +117,7 @@ namespace Fhi.Smittestopp.Verification.Domain.Verifications
 
             private async Task<VerificationResult> CreatePositiveVerificationResult(PositiveTestResult testResult, string pseudonym, IEnumerable<VerificationRecord> existingRecords)
             {
-                _logger.LogInformation("Creating verified positive result for identified user");
+                _logger.LogDebug("Creating verified positive result for identified user");
                 var verificationResult = new VerificationResult(testResult, existingRecords, _verificationLimit);
 
                 if (!verificationResult.VerificationLimitExceeded)
@@ -131,7 +131,7 @@ namespace Fhi.Smittestopp.Verification.Domain.Verifications
 
             private Task<VerificationResult> CreateNonPositiveResult()
             {
-                _logger.LogInformation("Creating non-positive verification result for identified user");
+                _logger.LogDebug("Creating non-positive verification result for identified user");
                 return Task.FromResult(new VerificationResult());
             }
         }

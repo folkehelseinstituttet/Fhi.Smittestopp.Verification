@@ -30,10 +30,14 @@ namespace Fhi.Smittestopp.Verification.Tests.TestUtils
             var authService = new Mock<IAuthenticationService>();
             var tempDataDictionaryFactory = new Mock<ITempDataDictionaryFactory>();
             var requestServices = new Mock<IServiceProvider>();
+            var urlHelper = new Mock<IUrlHelper>();
+            var urlHelperFactory = new Mock<IUrlHelperFactory>();
+            urlHelperFactory.Setup(x => x.GetUrlHelper(It.IsAny<ActionContext>())).Returns(urlHelper.Object);
+
             requestServices.Setup(x => x.GetService(typeof(IdentityServerOptions))).Returns(isOptions);
-            requestServices.Setup(x => x.GetService(typeof(IAuthenticationService))).Returns(authService.Object);
+            requestServices.Setup(x => x.GetService(typeof(IAuthenticationService))).Returns(automock?.Get<IAuthenticationService>() ?? authService.Object);
             requestServices.Setup(x => x.GetService(typeof(ITempDataDictionaryFactory))).Returns(tempDataDictionaryFactory.Object);
-            requestServices.Setup(x => x.GetService(typeof(IUrlHelperFactory))).Returns(() => automock?.Get<IUrlHelperFactory>());
+            requestServices.Setup(x => x.GetService(typeof(IUrlHelperFactory))).Returns(() => automock?.Get<IUrlHelperFactory>() ?? urlHelperFactory.Object);
 
             controller.ControllerContext = new ControllerContext
             {

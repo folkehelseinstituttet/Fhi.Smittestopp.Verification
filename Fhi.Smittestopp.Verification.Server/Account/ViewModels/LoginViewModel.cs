@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using Fhi.Smittestopp.Verification.Server.Account.Models;
-using IdentityServerHost.Quickstart.UI;
 
 namespace Fhi.Smittestopp.Verification.Server.Account.ViewModels
 {

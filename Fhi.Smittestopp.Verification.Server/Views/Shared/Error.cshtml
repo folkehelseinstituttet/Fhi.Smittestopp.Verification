@@ -1,31 +1,25 @@
-@model ErrorViewModel
-
-@{
-    var error = Model?.Error?.Error;
-    var errorDescription = Model?.Error?.ErrorDescription;
-    var request_id = Model?.Error?.RequestId;
-}
+@model Fhi.Smittestopp.Verification.Server.Home.ErrorViewModel
 
 <h1>Error</h1>
 <div>
     Sorry, there was an error
 
-    @if (error != null)
+    @if (Model?.Error != null)
     {
         <strong>
             <em>
-                : @error
+                : @Model.Error
             </em>
         </strong>
 
-        if (errorDescription != null)
+        if (Model?.ErrorDescription != null)
         {
-            <div>@errorDescription</div>
+            <div>@Model.ErrorDescription</div>
         }
     }
 </div>
 
-@if (request_id != null)
+@if (Model?.RequestId != null)
 {
-    <div>Request Id: @request_id</div>
+    <div>Request Id: @Model.RequestId</div>
 }

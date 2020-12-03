@@ -16,6 +16,7 @@ using MediatR;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.AspNetCore.Mvc.Routing;
+using Microsoft.Extensions.Options;
 using Optional;
 using Optional.Async.Extensions;
 
@@ -23,7 +24,7 @@ namespace Fhi.Smittestopp.Verification.Server.Account
 {
     public interface IAccountService
     {
-        Task<LoginOptions> GetLoginOptions(string returnUrl);
+        Task<Option<LoginOptions, string>> GetLoginOptions(string returnUrl);
         Task<LogoutOptions> GetLogoutOptions(string logoutId, Option<ClaimsPrincipal> user);
 
         Task<Option<LocalLoginResult, string>> AttemptLocalLogin(string pincode, string returnUrl);
@@ -41,8 +42,9 @@ namespace Fhi.Smittestopp.Verification.Server.Account
         private readonly IEventService _events;
         private readonly IUrlHelperFactory _urlHelperFactory;
         private readonly IActionContextAccessor _actionContextAccessor;
+        private readonly IOptions<InteractionConfig> _interactionConfig;
 
-        public AccountService(IClientStore clientStore, IIdentityServerInteractionService interaction, IAuthenticationSchemeProvider schemeProvider, IMediator mediator, IEventService events, IUrlHelperFactory urlHelperFactory, IActionContextAccessor actionContextAccessor)
+        public AccountService(IClientStore clientStore, IIdentityServerInteractionService interaction, IAuthenticationSchemeProvider schemeProvider, IMediator mediator, IEventService events, IUrlHelperFactory urlHelperFactory, IActionContextAccessor actionContextAccessor, IOptions<InteractionConfig> interactionConfig)
         {
             _clientStore = clientStore;
             _interaction = interaction;
@@ -51,11 +53,17 @@ namespace Fhi.Smittestopp.Verification.Server.Account
             _events = events;
             _urlHelperFactory = urlHelperFactory;
             _actionContextAccessor = actionContextAccessor;
+            _interactionConfig = interactionConfig;
         }
 
-        public async Task<LoginOptions> GetLoginOptions(string returnUrl)
+        public async Task<Option<LoginOptions, string>> GetLoginOptions(string returnUrl)
         {
             var context = await _interaction.GetAuthorizationContextAsync(returnUrl);
+
+            if (_interactionConfig.Value.RequireAuthorizationRequest && context == null)
+            {
+                return Option.None<LoginOptions, string>("A valid authorization request is required for login.");
+            }
 
             // handle requests for specific identity provider
             if (context?.IdP != null && await _schemeProvider.GetSchemeAsync(context.IdP) != null)
@@ -70,7 +78,7 @@ namespace Fhi.Smittestopp.Verification.Server.Account
                     ExternalProviders = localLoginRequested
                         ? Enumerable.Empty<ExternalProvider>()
                         : new[] { new ExternalProvider { AuthenticationScheme = context.IdP } }
-                };
+                }.Some<LoginOptions, string>();
             }
 
             var schemes = await _schemeProvider.GetAllSchemesAsync();
@@ -103,7 +111,7 @@ namespace Fhi.Smittestopp.Verification.Server.Account
                 EnableLocalLogin = allowLocal && AccountOptions.AllowLocalLogin,
                 LoginHint = context?.LoginHint,
                 ExternalProviders = providers.ToArray()
-            };
+            }.Some<LoginOptions, string>();
         }
 
         public async Task<LogoutOptions> GetLogoutOptions(string logoutId, Option<ClaimsPrincipal> user)
@@ -138,6 +146,11 @@ namespace Fhi.Smittestopp.Verification.Server.Account
         {
             // check if we are in the context of an authorization request
             var context = await _interaction.GetAuthorizationContextAsync(returnUrl);
+
+            if (_interactionConfig.Value.RequireAuthorizationRequest && context == null)
+            {
+                return Option.None<LocalLoginResult, string>("A valid authorization request is required for login.");
+            }
 
             var trustedReturlUrl = Option.None<string>();
             if (context != null)

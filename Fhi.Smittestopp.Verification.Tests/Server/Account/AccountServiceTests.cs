@@ -6,6 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Fhi.Smittestopp.Verification.Domain.Models;
 using Fhi.Smittestopp.Verification.Domain.Users;
+using Fhi.Smittestopp.Verification.Server;
 using Fhi.Smittestopp.Verification.Server.Account;
 using Fhi.Smittestopp.Verification.Server.Account.Models;
 using FluentAssertions;
@@ -20,6 +21,7 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Routing;
+using Microsoft.Extensions.Options;
 using Moq;
 using Moq.AutoMock;
 using NUnit.Framework;
@@ -32,6 +34,29 @@ namespace Fhi.Smittestopp.Verification.Tests.Server.Account
     public class AccountServiceTests
     {
         [Test]
+        public async Task GetLoginOptions_AuthRequestRequiredButNotAvailable_ReturnsErrorResult()
+        {
+            var automocker = new AutoMocker();
+
+            automocker.Setup<IIdentityServerInteractionService, Task<AuthorizationRequest>>(x =>
+                    x.GetAuthorizationContextAsync("/auth/?authRequest=123"))
+                .ReturnsAsync((AuthorizationRequest)null);
+
+            automocker
+                .Setup<IOptions<InteractionConfig>, InteractionConfig>(x => x.Value)
+                .Returns(new InteractionConfig
+                {
+                    RequireAuthorizationRequest = true
+                });
+
+            var target = automocker.CreateInstance<AccountService>();
+
+            var result = await target.GetLoginOptions("/auth/?authRequest=123");
+
+            result.Should().Be(Option.None<LoginOptions, string>("A valid authorization request is required for login."));
+        }
+
+        [Test]
         public async Task GetLoginOptions_GivenExtIdpRequest_ReturnsSingleIdpOptions()
         {
             var automocker = new AutoMocker();
@@ -43,6 +68,13 @@ namespace Fhi.Smittestopp.Verification.Tests.Server.Account
                     IdP = "ext-provider"
                 });
 
+            automocker
+                .Setup<IOptions<InteractionConfig>, InteractionConfig>(x => x.Value)
+                .Returns(new InteractionConfig
+                {
+                    RequireAuthorizationRequest = false
+                });
+
             automocker.Setup<IAuthenticationSchemeProvider, Task<AuthenticationScheme>>(x =>
                     x.GetSchemeAsync("ext-provider"))
                 .ReturnsAsync(new AuthenticationScheme("ext-provider", "An external provider", typeof(DummyAuthenticationHandler)));
@@ -51,8 +83,10 @@ namespace Fhi.Smittestopp.Verification.Tests.Server.Account
 
             var result = await target.GetLoginOptions("/auth/?authRequest=123");
 
-            result.IsExternalLoginOnly.Should().BeTrue();
-            result.ExternalLoginScheme.Should().Be("ext-provider");
+            result.HasValue.Should().BeTrue();
+            var innerResult = result.ValueOrFailure();
+            innerResult.IsExternalLoginOnly.Should().BeTrue();
+            innerResult.ExternalLoginScheme.Should().Be("ext-provider");
         }
 
 
@@ -68,6 +102,13 @@ namespace Fhi.Smittestopp.Verification.Tests.Server.Account
                     IdP = "local"
                 });
 
+            automocker
+                .Setup<IOptions<InteractionConfig>, InteractionConfig>(x => x.Value)
+                .Returns(new InteractionConfig
+                {
+                    RequireAuthorizationRequest = false
+                });
+
             automocker.Setup<IAuthenticationSchemeProvider, Task<AuthenticationScheme>>(x =>
                     x.GetSchemeAsync("local"))
                 .ReturnsAsync(new AuthenticationScheme("local", "Local provider", typeof(DummyAuthenticationHandler)));
@@ -76,15 +117,24 @@ namespace Fhi.Smittestopp.Verification.Tests.Server.Account
 
             var result = await target.GetLoginOptions("/auth/?authRequest=123");
 
-            result.IsExternalLoginOnly.Should().BeFalse();
-            result.EnableLocalLogin.Should().BeTrue();
-            result.ExternalProviders.Should().BeNullOrEmpty();
+            result.HasValue.Should().BeTrue();
+            var innerResult = result.ValueOrFailure();
+            innerResult.IsExternalLoginOnly.Should().BeFalse();
+            innerResult.EnableLocalLogin.Should().BeTrue();
+            innerResult.ExternalProviders.Should().BeNullOrEmpty();
         }
 
         [Test]
         public async Task GetLoginOptions_GivenNoContext_ReturnsAllValidLoginOptions()
         {
             var automocker = new AutoMocker();
+
+            automocker
+                .Setup<IOptions<InteractionConfig>, InteractionConfig>(x => x.Value)
+                .Returns(new InteractionConfig
+                {
+                    RequireAuthorizationRequest = false
+                });
 
             automocker.Setup<IAuthenticationSchemeProvider, Task<IEnumerable<AuthenticationScheme>>>(x => x.GetAllSchemesAsync())
                 .ReturnsAsync(new []
@@ -97,9 +147,11 @@ namespace Fhi.Smittestopp.Verification.Tests.Server.Account
 
             var result = await target.GetLoginOptions(null);
 
-            result.IsExternalLoginOnly.Should().BeFalse();
-            result.EnableLocalLogin.Should().BeTrue();
-            result.ExternalProviders.Should().Contain(p => p.AuthenticationScheme == "ext-provider-a")
+            result.HasValue.Should().BeTrue();
+            var innerResult = result.ValueOrFailure();
+            innerResult.IsExternalLoginOnly.Should().BeFalse();
+            innerResult.EnableLocalLogin.Should().BeTrue();
+            innerResult.ExternalProviders.Should().Contain(p => p.AuthenticationScheme == "ext-provider-a")
                 .And.Contain(p => p.AuthenticationScheme == "ext-provider-b");
         }
 
@@ -127,6 +179,13 @@ namespace Fhi.Smittestopp.Verification.Tests.Server.Account
                     Client = client
                 });
 
+            automocker
+                .Setup<IOptions<InteractionConfig>, InteractionConfig>(x => x.Value)
+                .Returns(new InteractionConfig
+                {
+                    RequireAuthorizationRequest = false
+                });
+
             automocker.Setup<IClientStore, Task<Client>>(x =>
                     x.FindClientByIdAsync("a-client"))
                 .ReturnsAsync(client);
@@ -142,8 +201,10 @@ namespace Fhi.Smittestopp.Verification.Tests.Server.Account
 
             var result = await target.GetLoginOptions("/auth/?authRequest=123");
 
-            result.EnableLocalLogin.Should().Be(allowLocalLoginForClient);
-            result.ExternalProviders.Should().Contain(p => p.AuthenticationScheme == "ext-provider-b")
+            result.HasValue.Should().BeTrue();
+            var innerResult = result.ValueOrFailure();
+            innerResult.EnableLocalLogin.Should().Be(allowLocalLoginForClient);
+            innerResult.ExternalProviders.Should().Contain(p => p.AuthenticationScheme == "ext-provider-b")
                 .And.NotContain(p => p.AuthenticationScheme == "ext-provider-a");
         }
 
@@ -210,6 +271,29 @@ namespace Fhi.Smittestopp.Verification.Tests.Server.Account
         }
 
         [Test]
+        public async Task AttemptLocalLogin_AuthRequestRequiredButNotAvailable_ReturnsErrorResult()
+        {
+            var automocker = new AutoMocker();
+
+            automocker.Setup<IIdentityServerInteractionService, Task<AuthorizationRequest>>(x =>
+                    x.GetAuthorizationContextAsync("/auth/?authRequest=123"))
+                .ReturnsAsync((AuthorizationRequest)null);
+
+            automocker
+                .Setup<IOptions<InteractionConfig>, InteractionConfig>(x => x.Value)
+                .Returns(new InteractionConfig
+                {
+                    RequireAuthorizationRequest = true
+                });
+
+            var target = automocker.CreateInstance<AccountService>();
+
+            var result = await target.AttemptLocalLogin("123456", "/auth/?authRequest=123");
+
+            result.Should().Be(Option.None<LocalLoginResult, string>("A valid authorization request is required for login."));
+        }
+
+        [Test]
         public void AttemptLocalLogin_GivenInvalidReturnUrl_ThrowsException()
         {
             var automocker = new AutoMocker();
@@ -218,6 +302,13 @@ namespace Fhi.Smittestopp.Verification.Tests.Server.Account
                 .Setup<IMediator, Task<Option<PinVerifiedUser>>>(m =>
                     m.Send(It.IsAny<CreateFromPinCode.Command>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(Option.None<PinVerifiedUser>());
+
+            automocker
+                .Setup<IOptions<InteractionConfig>, InteractionConfig>(x => x.Value)
+                .Returns(new InteractionConfig
+                {
+                    RequireAuthorizationRequest = false
+                });
 
             automocker
                 .Setup<IUrlHelper, bool>(m => m.IsLocalUrl(It.IsAny<string>()))
@@ -243,6 +334,13 @@ namespace Fhi.Smittestopp.Verification.Tests.Server.Account
                 .ReturnsAsync(Option.None<PinVerifiedUser>());
 
             automocker
+                .Setup<IOptions<InteractionConfig>, InteractionConfig>(x => x.Value)
+                .Returns(new InteractionConfig
+                {
+                    RequireAuthorizationRequest = false
+                });
+
+            automocker
                 .Setup<IUrlHelper, bool>(m => m.IsLocalUrl(It.IsAny<string>()))
                 .Returns(true);
 
@@ -266,6 +364,13 @@ namespace Fhi.Smittestopp.Verification.Tests.Server.Account
                 .Setup<IMediator, Task<Option<PinVerifiedUser>>>(m =>
                     m.Send(It.IsAny<CreateFromPinCode.Command>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(new PinVerifiedUser("pseudo-1").Some());
+
+            automocker
+                .Setup<IOptions<InteractionConfig>, InteractionConfig>(x => x.Value)
+                .Returns(new InteractionConfig
+                {
+                    RequireAuthorizationRequest = false
+                });
 
             automocker
                 .Setup<IUrlHelper, bool>(m => m.IsLocalUrl(It.IsAny<string>()))
@@ -296,6 +401,13 @@ namespace Fhi.Smittestopp.Verification.Tests.Server.Account
                 .ReturnsAsync(new PinVerifiedUser("pseudo-1").Some());
 
             automocker
+                .Setup<IOptions<InteractionConfig>, InteractionConfig>(x => x.Value)
+                .Returns(new InteractionConfig
+                {
+                    RequireAuthorizationRequest = false
+                });
+
+            automocker
                 .Setup<IUrlHelper, bool>(m => m.IsLocalUrl(It.IsAny<string>()))
                 .Returns(true);
 
@@ -323,6 +435,13 @@ namespace Fhi.Smittestopp.Verification.Tests.Server.Account
                 .Setup<IMediator, Task<Option<PinVerifiedUser>>>(m =>
                     m.Send(It.IsAny<CreateFromPinCode.Command>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(new PinVerifiedUser("pseudo-1").Some());
+
+            automocker
+                .Setup<IOptions<InteractionConfig>, InteractionConfig>(x => x.Value)
+                .Returns(new InteractionConfig
+                {
+                    RequireAuthorizationRequest = false
+                });
 
             automocker.Setup<IIdentityServerInteractionService, Task<AuthorizationRequest>>(x =>
                     x.GetAuthorizationContextAsync("/auth/?authRequest=123"))

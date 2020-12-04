@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Routing;
 using Microsoft.AspNetCore.Mvc.ViewFeatures;
+using Microsoft.Extensions.Options;
 using Moq;
 using Moq.AutoMock;
 using Moq.Protected;
@@ -80,6 +81,12 @@ namespace Fhi.Smittestopp.Verification.Tests.TestUtils
                 // prepare the expected response of the mocked http call
                 .Returns<HttpRequestMessage, CancellationToken>((request, token) => Task.FromResult(new HttpResponseMessage(HttpStatusCode.NotFound)));
             return mock;
+        }
+
+        public static AutoMocker SetupOptions<T>(this AutoMocker automocker, T value) where T : class
+        {
+            automocker.Setup<IOptions<T>, T>(x => x.Value).Returns(value);
+            return automocker;
         }
 
         public static Mock<HttpMessageHandler> SetupRequest(this Mock<HttpMessageHandler> mock, HttpMethod method, string path, HttpResponseMessage response)

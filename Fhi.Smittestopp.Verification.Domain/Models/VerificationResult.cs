@@ -34,7 +34,7 @@ namespace Fhi.Smittestopp.Verification.Domain.Models
             IVerificationLimit verificationLimit)
         {
             _testresult = testresult.Some();
-            VerificationLimitExceeded = verificationLimit.HasExceededLimit(priorVerifications);
+            VerificationLimitExceeded = verificationLimit.HasReachedLimit(priorVerifications);
             VerificationLimitConfig = verificationLimit.Config.Some();
         }
 

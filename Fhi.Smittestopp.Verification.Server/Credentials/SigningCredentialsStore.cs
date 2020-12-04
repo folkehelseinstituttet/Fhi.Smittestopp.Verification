@@ -72,10 +72,13 @@ namespace Fhi.Smittestopp.Verification.Server.Credentials
                 .ValueOr(() => throw new Exception("Unable to locate signing certificate: " + _config.Signing));
 
             var additionalValidationCerts = new List<CertificateVersion>();
-            foreach (var addValidationCert in _config.AdditionalValidation)
+            if (_config.AdditionalValidation != null)
             {
-                additionalValidationCerts.AddRange(
-                    await _certificateLocator.GetAllEnabledCertificateVersionsAsync(addValidationCert));
+                foreach (var addValidationCert in _config?.AdditionalValidation)
+                {
+                    additionalValidationCerts.AddRange(
+                        await _certificateLocator.GetAllEnabledCertificateVersionsAsync(addValidationCert));
+                }
             }
             var enabledValidationKeys = enabledCerts.Concat(additionalValidationCerts).Select(x => new SecurityKeyInfo
             {

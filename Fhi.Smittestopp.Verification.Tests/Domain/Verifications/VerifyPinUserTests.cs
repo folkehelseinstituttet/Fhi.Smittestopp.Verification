@@ -37,7 +37,7 @@ namespace Fhi.Smittestopp.Verification.Tests.Domain.Verifications
             var verLimitConfig = new Mock<IVerificationLimitConfig>();
 
             automocker
-                .Setup<IVerificationLimit, bool>(x => x.HasExceededLimit(It.IsAny<IEnumerable<VerificationRecord>>()))
+                .Setup<IVerificationLimit, bool>(x => x.HasReachedLimit(It.IsAny<IEnumerable<VerificationRecord>>()))
                 .Returns(true);
 
             automocker

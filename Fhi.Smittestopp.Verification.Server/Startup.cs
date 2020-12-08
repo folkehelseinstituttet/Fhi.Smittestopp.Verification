@@ -1,8 +1,8 @@
 ﻿using AnonymousTokens.Core.Services;
-using AnonymousTokens.Core.Services.InMemory;
 using AnonymousTokens.Server.Protocol;
 
 using Fhi.Smittestopp.Verification.Domain;
+using Fhi.Smittestopp.Verification.Domain.AnonymousTokens;
 using Fhi.Smittestopp.Verification.Domain.Constants;
 using Fhi.Smittestopp.Verification.Domain.Users;
 using Fhi.Smittestopp.Verification.Msis;
@@ -91,8 +91,8 @@ namespace Fhi.Smittestopp.Verification.Server
             services.Configure<InteractionConfig>(Configuration.GetSection("interaction"));
             services.AddTransient<IAccountService, AccountService>();
             services.AddTransient<IExternalService, ExternalService>();
-            services.AddSingleton<IPrivateKeyStore, InMemoryPrivateKeyStore>(); // TODO: implement a real store
-            services.AddSingleton<IPublicKeyStore, InMemoryPublicKeyStore>(); // TODO: implement a real store
+            services.AddSingleton<IPrivateKeyStore, PrivateKeyStore>();
+            services.AddSingleton<IPublicKeyStore, PublicKeyStore>();
             services.AddSingleton<ITokenGenerator, TokenGenerator>();
 
             services.AddDomainServices(Configuration.GetSection("common"));

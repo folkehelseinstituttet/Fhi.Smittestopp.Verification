@@ -1,6 +1,7 @@
 ﻿using AnonymousTokens.Core.Services;
 
 using Org.BouncyCastle.Crypto.Parameters;
+using Org.BouncyCastle.Security;
 
 using System.Threading.Tasks;
 
@@ -17,12 +18,10 @@ namespace Fhi.Smittestopp.Verification.Domain.AnonymousTokens
 
         public async Task<ECPublicKeyParameters> GetAsync()
         {
-            var cert = await _certLocator.GetCertificateAsync();
+            var certificate = await _certLocator.GetCertificateAsync();
 
-            // HWM 08.12 
-            // TODO: convert cert to ECPublicKeyParameters    
-
-            return null;
+            var convertedCertificate = DotNetUtilities.FromX509Certificate(certificate);
+            return (ECPublicKeyParameters)convertedCertificate.GetPublicKey();
         }
     }
 }

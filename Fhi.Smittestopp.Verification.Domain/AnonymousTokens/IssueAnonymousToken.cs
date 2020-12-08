@@ -40,6 +40,7 @@ namespace Fhi.Smittestopp.Verification.Domain.AnonymousTokens
             private readonly IPrivateKeyStore _privateKeyStore;
             private readonly ITokenGenerator _tokenGenerator;
             private readonly AnonymousTokensConfig _config;
+            private readonly X9ECParameters _ecParameters;
 
             public Handler(
                 IAnonymousTokenIssueRecordRepository anonymousTokenIssueRecordRepository,
@@ -55,6 +56,8 @@ namespace Fhi.Smittestopp.Verification.Domain.AnonymousTokens
                 _privateKeyStore = privateKeyStore;
                 _tokenGenerator = tokenGenerator;
                 _config = config.Value;
+
+                _ecParameters = CustomNamedCurves.GetByOid(X9ObjectIdentifiers.Prime256v1);
             }
 
             public async Task<Option<AnonymousTokenResponse, string>> Handle(Command request, CancellationToken cancellationToken)
@@ -81,13 +84,11 @@ namespace Fhi.Smittestopp.Verification.Domain.AnonymousTokens
 
             private async Task<AnonymousTokenResponse> CreateAnonymousTokenForRequestAsync(AnonymousTokenRequest request)
             {
-                var ecParameters = CustomNamedCurves.GetByOid(X9ObjectIdentifiers.Prime256v1);
-
                 var k = await _privateKeyStore.GetAsync();
                 var K = await _publicKeyStore.GetAsync();
-                var P = ecParameters.Curve.DecodePoint(Hex.Decode(request.PAsHex));
+                var P = _ecParameters.Curve.DecodePoint(Hex.Decode(request.PAsHex));
 
-                var token = _tokenGenerator.GenerateToken(k, K.Q, ecParameters, P);
+                var token = _tokenGenerator.GenerateToken(k, K.Q, _ecParameters, P);
                 var Q = token.Q;
                 var c = token.c;
                 var z = token.z;

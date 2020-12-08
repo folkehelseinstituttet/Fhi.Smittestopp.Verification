@@ -1,4 +1,8 @@
-﻿using Fhi.Smittestopp.Verification.Domain;
+﻿using AnonymousTokens.Core.Services;
+using AnonymousTokens.Core.Services.InMemory;
+using AnonymousTokens.Server.Protocol;
+
+using Fhi.Smittestopp.Verification.Domain;
 using Fhi.Smittestopp.Verification.Domain.Constants;
 using Fhi.Smittestopp.Verification.Domain.Users;
 using Fhi.Smittestopp.Verification.Msis;
@@ -6,8 +10,11 @@ using Fhi.Smittestopp.Verification.Persistence;
 using Fhi.Smittestopp.Verification.Server.Account;
 using Fhi.Smittestopp.Verification.Server.Authentication;
 using Fhi.Smittestopp.Verification.Server.ExternalController;
+
 using IdentityServer4.EntityFramework.DbContexts;
+
 using MediatR;
+
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.DataProtection;
@@ -84,6 +91,9 @@ namespace Fhi.Smittestopp.Verification.Server
             services.Configure<InteractionConfig>(Configuration.GetSection("interaction"));
             services.AddTransient<IAccountService, AccountService>();
             services.AddTransient<IExternalService, ExternalService>();
+            services.AddSingleton<IPrivateKeyStore, InMemoryPrivateKeyStore>(); // TODO: implement a real store
+            services.AddSingleton<IPublicKeyStore, InMemoryPublicKeyStore>(); // TODO: implement a real store
+            services.AddSingleton<ITokenGenerator, TokenGenerator>();
 
             services.AddDomainServices(Configuration.GetSection("common"));
 

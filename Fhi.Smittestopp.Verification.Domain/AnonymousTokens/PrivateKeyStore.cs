@@ -2,6 +2,9 @@
 
 using Org.BouncyCastle.Math;
 
+using System;
+using System.Security.Cryptography;
+using System.Security.Cryptography.X509Certificates;
 using System.Threading.Tasks;
 
 namespace Fhi.Smittestopp.Verification.Domain.AnonymousTokens
@@ -17,12 +20,17 @@ namespace Fhi.Smittestopp.Verification.Domain.AnonymousTokens
 
         public async Task<BigInteger> GetAsync()
         {
-            var cert = await _certLocator.GetCertificateAsync();
+            var certificate = await _certLocator.GetCertificateAsync();
 
-            // HWM 08.12 
-            // TODO: convert cert to BigInteger
+            if (certificate.HasPrivateKey)
+            {
+                var privateKey = certificate.GetECDsaPrivateKey() as ECDsaCng;
+                var privateKeyParameters = privateKey.ExportParameters(true);
 
-            return null;
+                return new BigInteger(privateKeyParameters.D);
+            }
+
+            throw new Exception("Failed to load private key. Certificate " + certificate.Thumbprint + " did not contain a private key");
         }
     }
 }

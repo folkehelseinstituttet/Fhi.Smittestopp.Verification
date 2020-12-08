@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Security.Claims;
 using System.Threading;
 using System.Threading.Tasks;
-using Fhi.Smittestopp.Verification.Domain.Constans;
+using Fhi.Smittestopp.Verification.Domain.Constants;
 using Fhi.Smittestopp.Verification.Domain.Interfaces;
 using Fhi.Smittestopp.Verification.Domain.Users;
 using FluentAssertions;

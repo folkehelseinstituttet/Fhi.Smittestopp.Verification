@@ -1,4 +1,4 @@
-﻿namespace Fhi.Smittestopp.Verification.Domain.Constans
+﻿namespace Fhi.Smittestopp.Verification.Domain.Constants
 {
     /// <summary>
     /// https://difi.github.io/felleslosninger/oidc_guide_idporten.html

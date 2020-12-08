@@ -2,12 +2,14 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Fhi.Smittestopp.Verification.Domain.Constans;
 using Fhi.Smittestopp.Verification.Domain.Constants;
 using Fhi.Smittestopp.Verification.Domain.Interfaces;
+using Fhi.Smittestopp.Verification.Msis;
+using Fhi.Smittestopp.Verification.Persistence;
 using Fhi.Smittestopp.Verification.Server.Credentials;
 using IdentityModel;
 using IdentityServer4;
+using IdentityServer4.EntityFramework.DbContexts;
 using IdentityServer4.Stores;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.Extensions.Configuration;
@@ -34,6 +36,12 @@ namespace Fhi.Smittestopp.Verification.Server
         public bool RequireConsent { get; set; }
         public bool RequireClientSecret { get; set; }
         public bool RequirePkce { get; set; }
+    }
+
+    public class HealthCheckConfig
+    {
+        public bool CheckDb { get; set; }
+        public bool CheckMsis { get; set; }
     }
 
     public static class Config
@@ -98,6 +106,30 @@ namespace Fhi.Smittestopp.Verification.Server
 
     public static class ConfigExtensions
     {
+        public static IServiceCollection AddHealthChecks(this IServiceCollection services, IConfiguration config)
+        {
+            return services.AddHealthChecks(config.Get<HealthCheckConfig>());
+        }
+
+        public static IServiceCollection AddHealthChecks(this IServiceCollection services, HealthCheckConfig config)
+        {
+            var hcBuilder = services.AddHealthChecks();
+
+            if (config.CheckDb)
+            {
+                hcBuilder
+                    .AddDbContextCheck<VerificationDbContext>()
+                    .AddDbContextCheck<PersistedGrantDbContext>();
+            }
+
+            if (config.CheckMsis)
+            {
+                hcBuilder.AddCheck<MsisHealthCheck>("msis_health_check");
+            }
+
+            return services;
+        }
+
         public static AuthenticationBuilder AddIdPortenAuth(this AuthenticationBuilder authBuilder, IConfiguration config)
         {
             return authBuilder.AddIdPortenAuth(config.Get<IdPortenConfig>());

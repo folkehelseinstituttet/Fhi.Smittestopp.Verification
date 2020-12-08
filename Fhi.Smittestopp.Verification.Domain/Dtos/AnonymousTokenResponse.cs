@@ -12,6 +12,11 @@ namespace Fhi.Smittestopp.Verification.Domain.Dtos
 
         public string ProofZAsHex { get; set; }
 
+        public AnonymousTokenResponse()
+        {
+
+        }
+
         public AnonymousTokenResponse(ECPoint Q, BigInteger proofC, BigInteger proofZ)
         {
             QAsHex = Hex.ToHexString(Q.GetEncoded());

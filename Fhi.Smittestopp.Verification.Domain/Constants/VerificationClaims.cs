@@ -1,4 +1,4 @@
-﻿namespace Fhi.Smittestopp.Verification.Domain.Constans
+﻿namespace Fhi.Smittestopp.Verification.Domain.Constants
 {
     public static class VerificationClaims
     {

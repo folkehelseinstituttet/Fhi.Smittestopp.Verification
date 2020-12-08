@@ -33,10 +33,7 @@ namespace Fhi.Smittestopp.Verification.Server
 
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddHealthChecks()
-                .AddDbContextCheck<VerificationDbContext>()
-                .AddDbContextCheck<PersistedGrantDbContext>()
-                .AddCheck<MsisHealthCheck>("msis_health_check");
+            services.AddHealthChecks(Configuration.GetSection("health"));
 
             services.AddSingleton<IActionContextAccessor, ActionContextAccessor>();
 

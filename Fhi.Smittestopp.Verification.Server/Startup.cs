@@ -1,4 +1,5 @@
-﻿using Fhi.Smittestopp.Verification.Domain;
+﻿
+using Fhi.Smittestopp.Verification.Domain;
 using Fhi.Smittestopp.Verification.Domain.Constants;
 using Fhi.Smittestopp.Verification.Domain.Users;
 using Fhi.Smittestopp.Verification.Msis;
@@ -6,8 +7,11 @@ using Fhi.Smittestopp.Verification.Persistence;
 using Fhi.Smittestopp.Verification.Server.Account;
 using Fhi.Smittestopp.Verification.Server.Authentication;
 using Fhi.Smittestopp.Verification.Server.ExternalController;
+
 using IdentityServer4.EntityFramework.DbContexts;
+
 using MediatR;
+
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.DataProtection;

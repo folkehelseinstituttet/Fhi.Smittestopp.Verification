@@ -1,14 +1,25 @@
-﻿using System;
-using System.Linq;
-using System.Security.Cryptography.X509Certificates;
-using System.Threading;
-using System.Threading.Tasks;
+﻿
+using AnonymousTokens.Core.Services;
+using AnonymousTokens.Server.Protocol;
+
 using Fhi.Smittestopp.Verification.Domain.Dtos;
 using Fhi.Smittestopp.Verification.Domain.Interfaces;
 using Fhi.Smittestopp.Verification.Domain.Models;
+
 using MediatR;
+
 using Microsoft.Extensions.Options;
+
 using Optional;
+
+using Org.BouncyCastle.Asn1.X9;
+using Org.BouncyCastle.Crypto.EC;
+using Org.BouncyCastle.Utilities.Encoders;
+
+using System;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace Fhi.Smittestopp.Verification.Domain.AnonymousTokens
 {
@@ -25,13 +36,28 @@ namespace Fhi.Smittestopp.Verification.Domain.AnonymousTokens
         {
             private readonly IAnonymousTokenIssueRecordRepository _anonymousTokenIssueRecordRepository;
             private readonly IAnonymousTokensCertLocator _certLocator;
+            private readonly IPublicKeyStore _publicKeyStore;
+            private readonly IPrivateKeyStore _privateKeyStore;
+            private readonly ITokenGenerator _tokenGenerator;
             private readonly AnonymousTokensConfig _config;
+            private readonly X9ECParameters _ecParameters;
 
-            public Handler(IAnonymousTokenIssueRecordRepository anonymousTokenIssueRecordRepository, IAnonymousTokensCertLocator certLocator, IOptions<AnonymousTokensConfig> config)
+            public Handler(
+                IAnonymousTokenIssueRecordRepository anonymousTokenIssueRecordRepository,
+                IAnonymousTokensCertLocator certLocator,
+                IPublicKeyStore publicKeyStore,
+                IPrivateKeyStore privateKeyStore,
+                ITokenGenerator tokenGenerator,
+                IOptions<AnonymousTokensConfig> config)
             {
                 _anonymousTokenIssueRecordRepository = anonymousTokenIssueRecordRepository;
                 _certLocator = certLocator;
+                _publicKeyStore = publicKeyStore;
+                _privateKeyStore = privateKeyStore;
+                _tokenGenerator = tokenGenerator;
                 _config = config.Value;
+
+                _ecParameters = CustomNamedCurves.GetByOid(X9ObjectIdentifiers.Prime256v1);
             }
 
             public async Task<Option<AnonymousTokenResponse, string>> Handle(Command request, CancellationToken cancellationToken)
@@ -49,19 +75,25 @@ namespace Fhi.Smittestopp.Verification.Domain.AnonymousTokens
                     return Option.None<AnonymousTokenResponse, string>("Anonymous token already issued for the provided JWT-token ID.");
                 }
 
-                var tokenCert = await _certLocator.GetCertificateAsync();
-                var tokenResult = CreateAnonymousTokenForRequest(request.RequestData, tokenCert);
+                var tokenResult = await CreateAnonymousTokenForRequestAsync(request.RequestData);
+
                 await _anonymousTokenIssueRecordRepository.SaveNewRecord(new AnonymousTokenIssueRecord(request.JwtTokenId, request.JwtTokenExpiry));
+
                 return tokenResult.Some<AnonymousTokenResponse, string>();
             }
 
-            private AnonymousTokenResponse CreateAnonymousTokenForRequest(AnonymousTokenRequest request, X509Certificate2 x509Certificate2)
+            private async Task<AnonymousTokenResponse> CreateAnonymousTokenForRequestAsync(AnonymousTokenRequest request)
             {
-                // TODO: create anonymous token for request and cert
-                return new AnonymousTokenResponse
-                {
+                var k = await _privateKeyStore.GetAsync();
+                var K = await _publicKeyStore.GetAsync();
+                var P = _ecParameters.Curve.DecodePoint(Hex.Decode(request.PAsHex));
 
-                };
+                var token = _tokenGenerator.GenerateToken(k, K.Q, _ecParameters, P);
+                var Q = token.Q;
+                var c = token.c;
+                var z = token.z;
+
+                return new AnonymousTokenResponse(Q, c, z);
             }
         }
     }

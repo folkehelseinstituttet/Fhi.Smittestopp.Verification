@@ -2,6 +2,6 @@
 {
     public class AnonymousTokenRequest
     {
-        //TODO: add request data needed to create anonymous tokens
+        public string PAsHex { get; set; }
     }
 }

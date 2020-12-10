@@ -49,7 +49,7 @@ namespace Fhi.Smittestopp.Verification.Tests.Domain.AnonymousTokens
             var automocker = new AutoMocker();
 
             var certificateLocator = new LocalCertificateLocator();
-            var certificate = certificateLocator.GetCertificate("015EE60A57D6B8FC81C93A3ACE8540264C2F5221").ValueOr(() => null);
+            var certificate = certificateLocator.GetCertificate("<insert your certificate's thumbprint here>").ValueOr(() => null);
 
             automocker
                 .Setup<IAnonymousTokensCertLocator, Task<X509Certificate2>>(x => x.GetCertificateAsync())

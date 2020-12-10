@@ -3,7 +3,6 @@
 using Org.BouncyCastle.Math;
 
 using System;
-using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
 using System.Threading.Tasks;
 
@@ -24,7 +23,8 @@ namespace Fhi.Smittestopp.Verification.Domain.AnonymousTokens
 
             if (certificate.HasPrivateKey)
             {
-                var privateKey = certificate.GetECDsaPrivateKey() as ECDsaCng;
+                var privateKey = certificate.GetECDsaPrivateKey() ??
+                                 throw new Exception($"Provided certificate ({certificate.Thumbprint}) does not have an ECDsa private key.");
                 var privateKeyParameters = privateKey.ExportParameters(true);
 
                 return new BigInteger(privateKeyParameters.D);

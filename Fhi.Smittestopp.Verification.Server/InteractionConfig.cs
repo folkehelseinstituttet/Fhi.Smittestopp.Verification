@@ -16,5 +16,10 @@
         /// If true, displays error description in the error page
         /// </summary>
         public bool DisplayErrorDescription { get; set; }
+
+        /// <summary>
+        /// If true, uses redirect with better UX for native clients for non http(s) return urls.
+        /// </summary>
+        public bool UseNativeRedirect { get; set; }
     }
 }

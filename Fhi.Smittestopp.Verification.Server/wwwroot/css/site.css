@@ -1,0 +1,35 @@
+﻿html {
+    height: 100%;
+}
+
+body {
+    height: 100%;
+    margin: 0;
+    overflow: auto;
+    background: #393c61;
+    color: white;
+    font-family: helvetica,arial,sans-serif;
+}
+
+a {
+    color: #92D3FF;
+}
+
+a:visited {
+    color: #D3B5FF;
+}
+
+.redirect-page {
+    text-align: center;
+    width: 100%;
+    max-width: 500px;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+.redirect-page img {
+    max-width: 200px;
+    height: auto;
+}

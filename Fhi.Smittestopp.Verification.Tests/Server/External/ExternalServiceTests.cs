@@ -221,7 +221,8 @@ namespace Fhi.Smittestopp.Verification.Tests.Server.External
                 .Setup<IOptions<InteractionConfig>, InteractionConfig>(x => x.Value)
                 .Returns(new InteractionConfig
                 {
-                    RequireAuthorizationRequest = false
+                    RequireAuthorizationRequest = false,
+                    UseNativeRedirect = true
                 });
 
             automocker.Setup<IMediator, Task<IdentifiedUser>>(x =>
@@ -271,7 +272,8 @@ namespace Fhi.Smittestopp.Verification.Tests.Server.External
                 .Setup<IOptions<InteractionConfig>, InteractionConfig>(x => x.Value)
                 .Returns(new InteractionConfig
                 {
-                    RequireAuthorizationRequest = false
+                    RequireAuthorizationRequest = false,
+                    UseNativeRedirect = true
                 });
 
             automocker.Setup<IIdentityServerInteractionService, Task<AuthorizationRequest>>(x =>
@@ -294,6 +296,60 @@ namespace Fhi.Smittestopp.Verification.Tests.Server.External
             result.HasValue.Should().BeTrue();
             var innerResult = result.ValueOrFailure();
             innerResult.UseNativeClientRedirect.Should().BeTrue();
+        }
+
+        [Test]
+        public async Task ProcessExternalAuthentication_SuccessfulResultNativeClientButRedirectNotEnabled_ReturnsResultWithoutNativeRedirect()
+        {
+            //Arrange
+            var user = new ClaimsPrincipal(new ClaimsIdentity(new Claim[0]));
+            var authProps = new AuthenticationProperties
+            {
+                Items =
+                {
+                    {"scheme", "ext-scheme"},
+                    {"returnUrl", "~/authorize?requestId=123"}
+                }
+            };
+            var authTicket = new AuthenticationTicket(user, authProps, "ext-scheme");
+            var successfulAuthResult = AuthenticateResult.Success(authTicket);
+
+            var newInternalUser = new IdentifiedUser("08089403198", "pseudo-1");
+
+            var automocker = new AutoMocker();
+
+            automocker.Setup<IMediator, Task<IdentifiedUser>>(x =>
+                    x.Send(It.IsAny<CreateFromExternalAuthentication.Command>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(newInternalUser);
+
+            automocker
+                .Setup<IOptions<InteractionConfig>, InteractionConfig>(x => x.Value)
+                .Returns(new InteractionConfig
+                {
+                    RequireAuthorizationRequest = false,
+                    UseNativeRedirect = false
+                });
+
+            automocker.Setup<IIdentityServerInteractionService, Task<AuthorizationRequest>>(x =>
+                    x.GetAuthorizationContextAsync("~/authorize?requestId=123"))
+                .ReturnsAsync(new AuthorizationRequest
+                {
+                    RedirectUri = "native-scheme://some-path",
+                    Client = new Client
+                    {
+                        ClientId = "client-a"
+                    }
+                });
+
+            var target = automocker.CreateInstance<ExternalService>();
+
+            //Act
+            var result = await target.ProcessExternalAuthentication(successfulAuthResult);
+
+            //Assert
+            result.HasValue.Should().BeTrue();
+            var innerResult = result.ValueOrFailure();
+            innerResult.UseNativeClientRedirect.Should().BeFalse();
         }
 
         [Test]

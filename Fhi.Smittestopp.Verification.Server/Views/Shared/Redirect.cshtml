@@ -1,9 +1,11 @@
-@model Fhi.Smittestopp.Verification.Server.Account.ViewModels.RedirectViewModel
+﻿@model Fhi.Smittestopp.Verification.Server.Account.ViewModels.RedirectViewModel
+<div class="redirect-page">
+    <img class="logo" alt="FHI logo" src="~/img/logo_fhi_white.png">
 
-<h1>You are now being returned to the application</h1>
-<p>Once complete, you may close this tab.</p>
+    <p>Du sendes nå tilbake til Smittestopp.</p>
+    
+    <p>Etterpå kan denne fanen lukkes.</p>
 
-<p>App redirect URL:<br/><a href="@Model.RedirectUrl">@Model.RedirectUrl</a></p>
-
-<meta http-equiv="refresh" content="0;url=@Model.RedirectUrl" data-url="@Model.RedirectUrl">
-<script src="~/js/signin-redirect.js"></script>
+    <meta http-equiv="refresh" content="0;url=@Model.RedirectUrl" data-url="@Model.RedirectUrl">
+    <script src="~/js/signin-redirect.js"></script>
+</div>

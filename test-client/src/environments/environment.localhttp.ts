@@ -1,5 +1,5 @@
 export const environment = {
   production: false,
-  authIssuer: 'https://test-smittestopp-verification.azurewebsites.net',
+  authIssuer: 'http://localhost:5001',
   clientId: 'test-spa-client'
 };

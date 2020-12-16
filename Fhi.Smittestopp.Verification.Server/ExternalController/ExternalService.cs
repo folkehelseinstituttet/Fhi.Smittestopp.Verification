@@ -3,7 +3,6 @@ using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using Fhi.Smittestopp.Verification.Domain.Users;
-using Fhi.Smittestopp.Verification.Server.Account.Models;
 using Fhi.Smittestopp.Verification.Server.ExternalController.Models;
 using IdentityModel;
 using IdentityServer4;
@@ -113,7 +112,7 @@ namespace Fhi.Smittestopp.Verification.Server.ExternalController
                 AdditionalClaims = internalUser.GetCustomClaims().Concat(additionalLocalClaims).ToList()
             };
 
-            var useNativeRedirect = context?.IsNativeClient() ?? false;
+            var useNativeRedirect = _interactionConfig.Value.UseNativeRedirect && (context?.IsNativeClient() ?? false);
 
             var externalIdToken = extAuthResult.Properties.GetTokenValue("id_token").SomeNotNull();
 

@@ -101,6 +101,7 @@ namespace Fhi.Smittestopp.Verification.Server
 
             services.AddTransient<IAuthenticationHandler, IdentityServerSelfAuthScheme.AuthenticationHandler>();
 
+            services.ConfigureAuthCookies(Configuration.GetSection("authCookies"));
             services.AddAuthentication()
                 .AddIdPortenAuth(Configuration.GetSection("idPorten"))
                 .AddScheme<IdentityServerSelfAuthScheme.ApiKeyOptions, IdentityServerSelfAuthScheme.AuthenticationHandler>(IdentityServerSelfAuthScheme.Scheme, cfg => { });

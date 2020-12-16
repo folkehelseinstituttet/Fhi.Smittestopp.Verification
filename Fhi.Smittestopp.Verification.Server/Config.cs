@@ -12,6 +12,8 @@ using IdentityServer4;
 using IdentityServer4.EntityFramework.DbContexts;
 using IdentityServer4.Stores;
 using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
@@ -203,6 +205,24 @@ namespace Fhi.Smittestopp.Verification.Server
                         .Configure<AzureCertificateLocator.Config>(config.GetSection("azureVault"))
                         .AddTransient<ICertificateLocator, AzureCertificateLocator>();
                 }
+            }
+            return services;
+        }
+
+        public static IServiceCollection ConfigureAuthCookies(this IServiceCollection services, IConfiguration config)
+        {
+            if (config["sameSiteLax"] == "True")
+            {
+                // Override SameSite=None with SameSite=Strict, to make modern browsers accept the cookies for http
+                // NB! This does break silent token refresh, should that ever be needed.
+                services.Configure<CookieAuthenticationOptions>(IdentityServerConstants.DefaultCookieAuthenticationScheme, options =>
+                {
+                    options.Cookie.SameSite = SameSiteMode.Lax;
+                });
+                services.Configure<CookieAuthenticationOptions>(IdentityServerConstants.ExternalCookieAuthenticationScheme, options =>
+                {
+                    options.Cookie.SameSite = SameSiteMode.Lax;
+                });
             }
             return services;
         }

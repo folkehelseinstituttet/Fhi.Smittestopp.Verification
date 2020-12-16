@@ -191,7 +191,7 @@ namespace Fhi.Smittestopp.Verification.Server.Account
                             AdditionalClaims = pinUser.GetCustomClaims().ToList()
                         },
                         TrustedReturnUrl = trustedReturlUrl,
-                        UseNativeClientRedirect = context?.IsNativeClient() ?? false
+                        UseNativeClientRedirect = _interactionConfig.Value.UseNativeRedirect && (context?.IsNativeClient() ?? false)
                     }.Some<LocalLoginResult, string>();
                 });
         }

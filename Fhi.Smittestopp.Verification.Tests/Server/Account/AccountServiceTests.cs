@@ -425,9 +425,11 @@ namespace Fhi.Smittestopp.Verification.Tests.Server.Account
             loginResult.IsUser.Should().NotBeNull();
         }
 
-        [TestCase(true)]
-        [TestCase(false)]
-        public async Task AttemptLocalLogin_GivenValidPinCodeClientReturnUrl_ReturnsResult(bool isNativeClient)
+        [TestCase(true, true, true)]
+        [TestCase(false, true, false)]
+        [TestCase(true, false, false)]
+        [TestCase(false, false, false)]
+        public async Task AttemptLocalLogin_GivenValidPinCodeClientReturnUrl_ReturnsResult(bool isNativeClient, bool nativeRedirectEnabled, bool nativeRedirectExpected)
         {
             var automocker = new AutoMocker();
 
@@ -440,7 +442,8 @@ namespace Fhi.Smittestopp.Verification.Tests.Server.Account
                 .Setup<IOptions<InteractionConfig>, InteractionConfig>(x => x.Value)
                 .Returns(new InteractionConfig
                 {
-                    RequireAuthorizationRequest = false
+                    RequireAuthorizationRequest = false,
+                    UseNativeRedirect = nativeRedirectEnabled
                 });
 
             automocker.Setup<IIdentityServerInteractionService, Task<AuthorizationRequest>>(x =>
@@ -474,7 +477,7 @@ namespace Fhi.Smittestopp.Verification.Tests.Server.Account
 
             var loginResult = result.ValueOrFailure();
             loginResult.TrustedReturnUrl.Should().Be("/auth/?authRequest=123".Some());
-            loginResult.UseNativeClientRedirect.Should().Be(isNativeClient);
+            loginResult.UseNativeClientRedirect.Should().Be(nativeRedirectExpected);
             loginResult.IsUser.Should().NotBeNull();
         }
 

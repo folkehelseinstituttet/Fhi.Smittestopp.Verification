@@ -1,9 +1,13 @@
-﻿namespace Fhi.Smittestopp.Verification.Domain.AnonymousTokens
+﻿using System;
+
+namespace Fhi.Smittestopp.Verification.Domain.AnonymousTokens
 {
     public class AnonymousTokensConfig
     {
         public bool Enabled { get; set; }
-        public string CertId { get; set; }
-        public string CertPassword { get; set; }
+        public string MasterKeyCertId { get; set; }
+        public bool KeyRotationEnabled { get; set; }
+        public TimeSpan KeyRotationInterval { get; set; } = TimeSpan.FromDays(3);
+        public TimeSpan KeyRotationRollover { get; set; } = TimeSpan.FromHours(1);
     }
 }

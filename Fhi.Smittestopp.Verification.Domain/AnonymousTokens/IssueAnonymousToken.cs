@@ -1,6 +1,4 @@
-﻿
-using AnonymousTokens.Core.Services;
-using AnonymousTokens.Server.Protocol;
+﻿using AnonymousTokens.Server.Protocol;
 
 using Fhi.Smittestopp.Verification.Domain.Dtos;
 using Fhi.Smittestopp.Verification.Domain.Interfaces;
@@ -35,25 +33,19 @@ namespace Fhi.Smittestopp.Verification.Domain.AnonymousTokens
         public class Handler : IRequestHandler<Command, Option<AnonymousTokenResponse, string>>
         {
             private readonly IAnonymousTokenIssueRecordRepository _anonymousTokenIssueRecordRepository;
-            private readonly IAnonymousTokensCertLocator _certLocator;
-            private readonly IPublicKeyStore _publicKeyStore;
-            private readonly IPrivateKeyStore _privateKeyStore;
+            private readonly IAnonymousTokensKeyStore _keyStore;
             private readonly ITokenGenerator _tokenGenerator;
             private readonly AnonymousTokensConfig _config;
             private readonly X9ECParameters _ecParameters;
 
             public Handler(
                 IAnonymousTokenIssueRecordRepository anonymousTokenIssueRecordRepository,
-                IAnonymousTokensCertLocator certLocator,
-                IPublicKeyStore publicKeyStore,
-                IPrivateKeyStore privateKeyStore,
+                IAnonymousTokensKeyStore keyStore,
                 ITokenGenerator tokenGenerator,
                 IOptions<AnonymousTokensConfig> config)
             {
                 _anonymousTokenIssueRecordRepository = anonymousTokenIssueRecordRepository;
-                _certLocator = certLocator;
-                _publicKeyStore = publicKeyStore;
-                _privateKeyStore = privateKeyStore;
+                _keyStore = keyStore;
                 _tokenGenerator = tokenGenerator;
                 _config = config.Value;
 
@@ -84,8 +76,9 @@ namespace Fhi.Smittestopp.Verification.Domain.AnonymousTokens
 
             private async Task<AnonymousTokenResponse> CreateAnonymousTokenForRequestAsync(AnonymousTokenRequest request)
             {
-                var k = await _privateKeyStore.GetAsync();
-                var K = await _publicKeyStore.GetAsync();
+                var signingKeyPair = await _keyStore.GetActiveSigningKeyPair();
+                var k = signingKeyPair.PrivateKey;
+                var K = signingKeyPair.PublicKey;
                 var P = _ecParameters.Curve.DecodePoint(Hex.Decode(request.PAsHex));
 
                 var token = _tokenGenerator.GenerateToken(k, K.Q, _ecParameters, P);
@@ -93,7 +86,7 @@ namespace Fhi.Smittestopp.Verification.Domain.AnonymousTokens
                 var c = token.c;
                 var z = token.z;
 
-                return new AnonymousTokenResponse(Q, c, z);
+                return new AnonymousTokenResponse(signingKeyPair.Kid, Q, c, z);
             }
         }
     }

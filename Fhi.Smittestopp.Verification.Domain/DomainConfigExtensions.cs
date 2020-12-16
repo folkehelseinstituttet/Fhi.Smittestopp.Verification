@@ -20,13 +20,18 @@ namespace Fhi.Smittestopp.Verification.Domain
             return services
                 .Configure<VerifyIdentifiedUser.Config>(config.GetSection("verification"))
                 .Configure<VerificationLimitConfig>(config.GetSection("verificationLimit"))
-                .Configure<AnonymousTokensConfig>(config.GetSection("anonymousTokens"))
-                .AddSingleton<IAnonymousTokensCertLocator, AnonymousTokensCertLocator>()
                 .AddTransient<IVerificationLimit, VerificationLimit>()
                 .Configure<OneWayPseudonymFactory.Config>(config.GetSection("pseudonyms"))
                 .AddTransient<IPseudonymFactory, OneWayPseudonymFactory>()
-                .AddSingleton<IPrivateKeyStore, InMemoryPrivateKeyStore>()
-                .AddSingleton<IPublicKeyStore, InMemoryPublicKeyStore>()
+                .AddAnonymousTokenServices(config.GetSection("anonymousTokens"));
+        }
+
+        private static IServiceCollection AddAnonymousTokenServices(this IServiceCollection services, IConfiguration config)
+        {
+            return services
+                .Configure<AnonymousTokensConfig>(config)
+                .AddTransient<IAnonymousTokenMasterKeyCertificateLocator, AnonymousTokenMasterKeyCertificateLocator>()
+                .AddTransient<IAnonymousTokensKeyStore, AnonymousTokenKeyStore>()
                 .AddSingleton<ITokenGenerator, TokenGenerator>();
         }
     }

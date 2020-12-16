@@ -14,12 +14,11 @@ using Optional.Collections;
 namespace Fhi.Smittestopp.Verification.Server.AnonymousTokens
 {
     [ApiController]
-    [Authorize(Policy = Policies.AnonymousTokens)]
     [Route("api/[controller]")]
     public class AnonymousTokensController : ControllerBase
     {
         private readonly IMediator _mediator;
-        private ILogger<AnonymousTokensController> _logger;
+        private readonly ILogger<AnonymousTokensController> _logger;
 
         public AnonymousTokensController(IMediator mediator, ILogger<AnonymousTokensController> logger)
         {
@@ -27,6 +26,7 @@ namespace Fhi.Smittestopp.Verification.Server.AnonymousTokens
             _logger = logger;
         }
 
+        [Authorize(Policy = Policies.AnonymousTokens)]
         [HttpPost]
         public async Task<ActionResult<AnonymousTokenResponse>> IssueNewToken(AnonymousTokenRequest request)
         {
@@ -56,6 +56,12 @@ namespace Fhi.Smittestopp.Verification.Server.AnonymousTokens
                     _logger.LogWarning("Anonymous token request was rejected with reason: " + e);
                     return Conflict(e);
                 });
+        }
+
+        [HttpGet("atks")]
+        public async Task<ActionResult<AnonymousTokenKeySet>> GetKeySet()
+        {
+            return await _mediator.Send(new GetAnonymousTokenKeySet.Query());
         }
     }
 }

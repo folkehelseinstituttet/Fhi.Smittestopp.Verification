@@ -1,4 +1,5 @@
 ﻿using AnonymousTokens.Core.Services;
+using AnonymousTokens.Core.Services.InMemory;
 using AnonymousTokens.Server.Protocol;
 
 using Fhi.Smittestopp.Verification.Domain.AnonymousTokens;
@@ -24,8 +25,8 @@ namespace Fhi.Smittestopp.Verification.Domain
                 .AddTransient<IVerificationLimit, VerificationLimit>()
                 .Configure<OneWayPseudonymFactory.Config>(config.GetSection("pseudonyms"))
                 .AddTransient<IPseudonymFactory, OneWayPseudonymFactory>()
-                .AddSingleton<IPrivateKeyStore, PrivateKeyStore>()
-                .AddSingleton<IPublicKeyStore, PublicKeyStore>()
+                .AddSingleton<IPrivateKeyStore, InMemoryPrivateKeyStore>()
+                .AddSingleton<IPublicKeyStore, InMemoryPublicKeyStore>()
                 .AddSingleton<ITokenGenerator, TokenGenerator>();
         }
     }

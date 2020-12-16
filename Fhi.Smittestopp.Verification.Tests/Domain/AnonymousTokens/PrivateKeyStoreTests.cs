@@ -4,6 +4,8 @@ using Fhi.Smittestopp.Verification.Tests.TestUtils;
 
 using FluentAssertions;
 
+using Microsoft.Extensions.Options;
+
 using Moq;
 using Moq.AutoMock;
 
@@ -24,6 +26,10 @@ namespace Fhi.Smittestopp.Verification.Tests.Domain.AnonymousTokens
             var automocker = new AutoMocker();
 
             var testCertificate = CertUtils.GenerateTestCert();
+
+            automocker
+                .Setup<IOptions<AnonymousTokensConfig>, AnonymousTokensConfig>(x => x.Value)
+                .Returns(new AnonymousTokensConfig());
 
             automocker
                 .Setup<IAnonymousTokensCertLocator, Task<X509Certificate2>>(x => x.GetCertificateAsync())
@@ -47,6 +53,10 @@ namespace Fhi.Smittestopp.Verification.Tests.Domain.AnonymousTokens
         {
             //Arrange
             var automocker = new AutoMocker();
+
+            automocker
+                .Setup<IOptions<AnonymousTokensConfig>, AnonymousTokensConfig>(x => x.Value)
+                .Returns(new AnonymousTokensConfig());
 
             var certificateLocator = new LocalCertificateLocator();
             var certificate = certificateLocator.GetCertificate("<insert your certificate's thumbprint here>").ValueOr(() => null);

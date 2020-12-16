@@ -7,6 +7,26 @@
         "ASPNETCORE_ENVIRONMENT": "Development"
       },
       "applicationUrl": "https://localhost:5001"
+    },
+    "SelfHost-MsisMock": {
+      "commandName": "Project",
+      "launchBrowser": true,
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "msis__mock": "True"
+      },
+      "applicationUrl": "https://localhost:5001"
+    },
+    "SelfHost-HttpAndMsisMock": {
+      "commandName": "Project",
+      "launchBrowser": true,
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "msis__mock": "True",
+        "signingCredentials__useDevSigningCredentials": "False",
+        "authCookies__sameSiteLax": "True"
+      },
+      "applicationUrl": "http://localhost:5001"
     }
   }
 }

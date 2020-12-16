@@ -4,7 +4,7 @@
   "scripts": {
     "ng": "ng",
     "start": "ng serve",
-    "startTest": "ng serve -c test",
+    "startLocalHttp": "ng serve -c localhttp",
     "startAzDev": "ng serve -c azdev",
     "startAzTest": "ng serve -c aztest",
     "startNhnTest": "ng serve -c nhntest",

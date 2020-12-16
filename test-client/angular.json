@@ -61,11 +61,11 @@
                 }
               ]
             },
-            "test": {
+            "localhttp": {
               "fileReplacements": [
                 {
                   "replace": "src/environments/environment.ts",
-                  "with": "src/environments/environment.test.ts"
+                  "with": "src/environments/environment.localhttp.ts"
                 }
               ]
             },
@@ -112,8 +112,8 @@
             "production": {
               "browserTarget": "test-client:build:production"
             },
-            "test": {
-              "browserTarget": "test-client:build:test"
+            "localhttp": {
+              "browserTarget": "test-client:build:localhttp"
             },
             "azdev": {
               "browserTarget": "test-client:build:azdev"

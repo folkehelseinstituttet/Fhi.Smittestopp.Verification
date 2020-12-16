@@ -85,6 +85,7 @@ namespace Fhi.Smittestopp.Verification.Server
 
             services.AddPersistence(Configuration.GetConnectionString("verificationDb"));
 
+            services.ConfigureAuthCookies(Configuration.GetSection("authCookies"));
             services.AddAuthentication()
                 .AddIdPortenAuth(Configuration.GetSection("idPorten"));
         }

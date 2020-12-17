@@ -33,7 +33,7 @@ namespace Fhi.Smittestopp.Verification.Domain.AnonymousTokens
                     Keys = validCerts.Select(c => new AnonymousTokenKey
                     {
                         Kid = c.Kid,
-                        PublicKeyAsHex = Hex.ToHexString(SubjectPublicKeyInfoFactory.CreateSubjectPublicKeyInfo(c.PublicKey).GetEncoded())
+                        PublicKeyAsHex = c.GetEncodedKey()
                     }).ToList()
                 };
             }

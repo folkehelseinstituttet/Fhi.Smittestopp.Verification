@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Threading;
@@ -10,8 +9,6 @@ using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Options;
 using Org.BouncyCastle.Asn1.X9;
 using Org.BouncyCastle.Crypto.EC;
-using Org.BouncyCastle.Crypto.Parameters;
-using Org.BouncyCastle.Math;
 
 namespace Fhi.Smittestopp.Verification.Domain.AnonymousTokens
 {
@@ -43,6 +40,7 @@ namespace Fhi.Smittestopp.Verification.Domain.AnonymousTokens
             var keyIntervalNumber = _config.KeyRotationEnabled
                 ? GetActiveKeyIntervalNumber()
                 : 1;
+
             return GetOrCreateSigningKeypairForInterval(keyIntervalNumber);
         }
 
@@ -51,7 +49,6 @@ namespace Fhi.Smittestopp.Verification.Domain.AnonymousTokens
             var validKeyIntervals = _config.KeyRotationEnabled
                 ? GetAllValidIntervalNumbers()
                 : new long[] { 1 };
-
 
             // User parent cert to generate new certs that are rotated
             var validSigningCerts = new List<AnonymousTokenValidationKey>();
@@ -68,12 +65,10 @@ namespace Fhi.Smittestopp.Verification.Domain.AnonymousTokens
             _cacheLock.Wait();
             try
             {
-                return _cache.GetOrCreateAsync(nameof(AnonymousTokenKeyStore) + "_" + keyIntervalNumber, async (cache) =>
+                return _cache.GetOrCreateAsync(nameof(AnonymousTokenKeyStore) + "_" + keyIntervalNumber, (cache) =>
                 {
                     cache.AbsoluteExpiration = DateTime.Now.AddDays(1);
-                    var masterKeyCert = await _masterKeyCertLocator.GetMasterKeyCertificate();
-                    var (privateKey, publiceKey) = GenerateKeypair(masterKeyCert, keyIntervalNumber);
-                    return new AnonymousTokenSigningKeypair(keyIntervalNumber.ToString(), privateKey, publiceKey);
+                    return CreateKeyPairForInterval(keyIntervalNumber);
                 });
             }
             finally
@@ -82,31 +77,15 @@ namespace Fhi.Smittestopp.Verification.Domain.AnonymousTokens
             }
         }
 
-        private (BigInteger privateKey, ECPublicKeyParameters publicKey) GenerateKeypair(X509Certificate2 masterKeyCert, long keyIntervalNumber)
+        private async Task<AnonymousTokenSigningKeypair> CreateKeyPairForInterval(long keyIntervalNumber)
         {
-            var privateKeyBytes = GeneratePrivateKeyBytes(masterKeyCert, keyIntervalNumber);
-            var privateKey = new BigInteger(privateKeyBytes);
-            var publicKey = CalculatePublicKey(privateKey);
-            return (privateKey, publicKey);
-        }
-
-        private byte[] GeneratePrivateKeyBytes(X509Certificate2 masterKeyCert, long keyIntervalNumber)
-        {
+            var masterKeyCert = await _masterKeyCertLocator.GetMasterKeyCertificate();
             var masterKeyBytes = RetrievePrivateKeyBytes(masterKeyCert);
-            var keyIntervalBytes = BitConverter.GetBytes(keyIntervalNumber);
-            var newKeyInputBytes = masterKeyBytes.Concat(keyIntervalBytes).ToArray();
-            using (HashAlgorithm algorithm = SHA256.Create())
-            {
-                return algorithm.ComputeHash(newKeyInputBytes);
-            }
-        }
-
-        private ECPublicKeyParameters CalculatePublicKey(BigInteger privateKey)
-        {
-            var curve = CustomNamedCurves.GetByOid(X9ObjectIdentifiers.Prime256v1);
-            var publicKeyPoint = curve.G.Multiply(privateKey);
-            var domainParams = new ECDomainParameters(curve.Curve, curve.G, curve.N, curve.H, curve.GetSeed());
-            return new ECPublicKeyParameters("ECDSA", publicKeyPoint, domainParams);
+            var crvName = "P-256";
+            var ecParameters = CustomNamedCurves.GetByOid(X9ObjectIdentifiers.Prime256v1);
+            var keyPairGenerator = new RollingKeyPairGenerator(masterKeyBytes, ecParameters);
+            var (privateKey, publiceKey) = keyPairGenerator.GenerateKeyPairForInterval(keyIntervalNumber);
+            return new AnonymousTokenSigningKeypair(keyIntervalNumber.ToString(), crvName, ecParameters, privateKey, publiceKey);
         }
 
         private byte[] RetrievePrivateKeyBytes(X509Certificate2 certificate)
@@ -120,6 +99,7 @@ namespace Fhi.Smittestopp.Verification.Domain.AnonymousTokens
             var rsaPrivateKey = certificate.GetRSAPrivateKey();
             if (rsaPrivateKey != null)
             {
+                // TODO: find a better way to extract bytes for RSA key
                 return Encoding.UTF8.GetBytes(rsaPrivateKey.ToXmlString(true));
             }
 

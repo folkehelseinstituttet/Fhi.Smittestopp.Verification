@@ -16,8 +16,6 @@ using NUnit.Framework;
 using Org.BouncyCastle.Asn1.X9;
 using Org.BouncyCastle.Crypto.EC;
 using Org.BouncyCastle.Crypto.Parameters;
-using Org.BouncyCastle.Security;
-using Org.BouncyCastle.Utilities.Encoders;
 
 namespace Fhi.Smittestopp.Verification.Tests.Domain.AnonymousTokens
 {
@@ -237,11 +235,13 @@ namespace Fhi.Smittestopp.Verification.Tests.Domain.AnonymousTokens
             var tokenGenerator = new TokenGenerator();
             var (Q, c, z) = tokenGenerator.GenerateToken(result.PrivateKey, result.PublicKey.Q, ecParameters, P);
 
-            var encodedKey = new AnonymousTokenValidationKey("id", result.PublicKey).GetEncodedKey();
-            ECPublicKeyParameters K = (ECPublicKeyParameters)PublicKeyFactory.CreateKey(Hex.Decode(encodedKey));
-            // TODO: The following line fails. How do we decode the public key?
-            //var W = initiator.RandomiseToken(ecParameters, K, P, Q, c, z, r);
-            var W = initiator.RandomiseToken(ecParameters, result.PublicKey, P, Q, c, z, r);
+            var encodedKey = new AnonymousTokenValidationKey("id", "P-256", ecParameters, result.PublicKey).GetEncodedKey();
+            var keyDto = result.AsValidationKey().AsKeyDto();
+            var clientSideEcParameters = CustomNamedCurves.GetByOid(X9ObjectIdentifiers.Prime256v1); // Matches keyDto.Crv == "P-256"
+            var clientSidePublicKeyPoint = clientSideEcParameters.Curve.DecodePoint(Convert.FromBase64String(keyDto.K));
+            var clientSideDomainParams = new ECDomainParameters(ecParameters);
+            var clientSidePublicKey = new ECPublicKeyParameters("ECDSA", clientSidePublicKeyPoint, clientSideDomainParams);
+            var W = initiator.RandomiseToken(clientSideEcParameters, clientSidePublicKey, P, Q, c, z, r);
 
             var tokenVerifier = new TokenVerifier(new InMemorySeedStore());
             var isVerified = await tokenVerifier.VerifyTokenAsync(result.PrivateKey, ecParameters.Curve, t, W);

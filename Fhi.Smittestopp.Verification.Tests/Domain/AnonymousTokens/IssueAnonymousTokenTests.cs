@@ -148,7 +148,7 @@ namespace Fhi.Smittestopp.Verification.Tests.Domain.AnonymousTokens
 
             automocker
                 .Setup<IAnonymousTokensKeyStore, Task<AnonymousTokenSigningKeypair>>(x => x.GetActiveSigningKeyPair())
-                .ReturnsAsync(new AnonymousTokenSigningKeypair("some-kid-123", privateKey, publicKey));
+                .ReturnsAsync(new AnonymousTokenSigningKeypair("some-kid-123", "P-256", ecParameters, privateKey, publicKey));
 
             automocker
                 .Setup<IPrivateKeyStore, Task<BigInteger>>(x => x.GetAsync()).Returns(new InMemoryPrivateKeyStore().GetAsync());

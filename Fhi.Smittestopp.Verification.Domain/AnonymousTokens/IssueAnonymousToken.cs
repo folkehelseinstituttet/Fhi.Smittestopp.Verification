@@ -10,8 +10,6 @@ using Microsoft.Extensions.Options;
 
 using Optional;
 
-using Org.BouncyCastle.Asn1.X9;
-using Org.BouncyCastle.Crypto.EC;
 using Org.BouncyCastle.Utilities.Encoders;
 
 using System;
@@ -36,7 +34,6 @@ namespace Fhi.Smittestopp.Verification.Domain.AnonymousTokens
             private readonly IAnonymousTokensKeyStore _keyStore;
             private readonly ITokenGenerator _tokenGenerator;
             private readonly AnonymousTokensConfig _config;
-            private readonly X9ECParameters _ecParameters;
 
             public Handler(
                 IAnonymousTokenIssueRecordRepository anonymousTokenIssueRecordRepository,
@@ -48,8 +45,6 @@ namespace Fhi.Smittestopp.Verification.Domain.AnonymousTokens
                 _keyStore = keyStore;
                 _tokenGenerator = tokenGenerator;
                 _config = config.Value;
-
-                _ecParameters = CustomNamedCurves.GetByOid(X9ObjectIdentifiers.Prime256v1);
             }
 
             public async Task<Option<AnonymousTokenResponse, string>> Handle(Command request, CancellationToken cancellationToken)
@@ -79,9 +74,9 @@ namespace Fhi.Smittestopp.Verification.Domain.AnonymousTokens
                 var signingKeyPair = await _keyStore.GetActiveSigningKeyPair();
                 var k = signingKeyPair.PrivateKey;
                 var K = signingKeyPair.PublicKey;
-                var P = _ecParameters.Curve.DecodePoint(Hex.Decode(request.PAsHex));
+                var P = signingKeyPair.EcParameters.Curve.DecodePoint(Hex.Decode(request.PAsHex));
 
-                var token = _tokenGenerator.GenerateToken(k, K.Q, _ecParameters, P);
+                var token = _tokenGenerator.GenerateToken(k, K.Q, signingKeyPair.EcParameters, P);
                 var Q = token.Q;
                 var c = token.c;
                 var z = token.z;

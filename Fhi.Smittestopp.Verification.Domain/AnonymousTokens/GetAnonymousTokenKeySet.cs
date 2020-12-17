@@ -1,10 +1,9 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Fhi.Smittestopp.Verification.Domain.Dtos;
 using MediatR;
-using Org.BouncyCastle.Utilities.Encoders;
-using Org.BouncyCastle.X509;
 
 namespace Fhi.Smittestopp.Verification.Domain.AnonymousTokens
 {
@@ -30,11 +29,7 @@ namespace Fhi.Smittestopp.Verification.Domain.AnonymousTokens
 
                 return new AnonymousTokenKeySet
                 {
-                    Keys = validCerts.Select(c => new AnonymousTokenKey
-                    {
-                        Kid = c.Kid,
-                        PublicKeyAsHex = c.GetEncodedKey()
-                    }).ToList()
+                    Keys = validCerts.Select(c => c.AsKeyDto()).ToList()
                 };
             }
         }

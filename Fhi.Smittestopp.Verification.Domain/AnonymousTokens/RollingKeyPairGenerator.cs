@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Linq;
+using System.Security.Cryptography.X509Certificates;
+using System.Text;
 using Org.BouncyCastle.Asn1.X9;
 using Org.BouncyCastle.Crypto.Digests;
 using Org.BouncyCastle.Crypto.Generators;
@@ -17,6 +19,29 @@ namespace Fhi.Smittestopp.Verification.Domain.AnonymousTokens
         {
             _masterKeyBytes = masterKeyBytes;
             _ecParameters = ecParameters;
+        }
+
+        public RollingKeyPairGenerator(X509Certificate2 certificate, X9ECParameters ecParameters)
+            : this(RetrievePrivateKeyBytes(certificate), ecParameters)
+        {
+        }
+
+        private static byte[] RetrievePrivateKeyBytes(X509Certificate2 certificate)
+        {
+            var ecdsaPrivateKey = certificate.GetECDsaPrivateKey();
+            if (ecdsaPrivateKey != null)
+            {
+                return ecdsaPrivateKey.ExportParameters(true).D;
+            }
+
+            var rsaPrivateKey = certificate.GetRSAPrivateKey();
+            if (rsaPrivateKey != null)
+            {
+                // TODO: find a better way to extract bytes for RSA key
+                return Encoding.UTF8.GetBytes(rsaPrivateKey.ToXmlString(true));
+            }
+
+            throw new NotSupportedException($"Unsupported private key for certificate {certificate.Thumbprint}");
         }
 
         public (BigInteger privateKey, ECPublicKeyParameters publicKey) GenerateKeyPairForInterval(long keyIntervalNumber)

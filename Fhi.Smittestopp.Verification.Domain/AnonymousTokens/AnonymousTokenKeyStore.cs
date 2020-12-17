@@ -80,30 +80,11 @@ namespace Fhi.Smittestopp.Verification.Domain.AnonymousTokens
         private async Task<AnonymousTokenSigningKeypair> CreateKeyPairForInterval(long keyIntervalNumber)
         {
             var masterKeyCert = await _masterKeyCertLocator.GetMasterKeyCertificate();
-            var masterKeyBytes = RetrievePrivateKeyBytes(masterKeyCert);
             var crvName = "P-256";
             var ecParameters = CustomNamedCurves.GetByOid(X9ObjectIdentifiers.Prime256v1);
-            var keyPairGenerator = new RollingKeyPairGenerator(masterKeyBytes, ecParameters);
+            var keyPairGenerator = new RollingKeyPairGenerator(masterKeyCert, ecParameters);
             var (privateKey, publiceKey) = keyPairGenerator.GenerateKeyPairForInterval(keyIntervalNumber);
             return new AnonymousTokenSigningKeypair(keyIntervalNumber.ToString(), crvName, ecParameters, privateKey, publiceKey);
-        }
-
-        private byte[] RetrievePrivateKeyBytes(X509Certificate2 certificate)
-        {
-            var ecdsaPrivateKey = certificate.GetECDsaPrivateKey();
-            if (ecdsaPrivateKey != null)
-            {
-                return ecdsaPrivateKey.ExportParameters(true).D;
-            }
-
-            var rsaPrivateKey = certificate.GetRSAPrivateKey();
-            if (rsaPrivateKey != null)
-            {
-                // TODO: find a better way to extract bytes for RSA key
-                return Encoding.UTF8.GetBytes(rsaPrivateKey.ToXmlString(true));
-            }
-
-            throw new NotSupportedException($"Unsupported private key for certificate {certificate.Thumbprint}");
         }
 
         private long GetActiveKeyIntervalNumber()

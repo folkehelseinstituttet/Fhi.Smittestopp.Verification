@@ -16,6 +16,7 @@ using NUnit.Framework;
 using Org.BouncyCastle.Asn1.X9;
 using Org.BouncyCastle.Crypto.EC;
 using Org.BouncyCastle.Crypto.Parameters;
+using Org.BouncyCastle.Math;
 
 namespace Fhi.Smittestopp.Verification.Tests.Domain.AnonymousTokens
 {
@@ -237,11 +238,14 @@ namespace Fhi.Smittestopp.Verification.Tests.Domain.AnonymousTokens
 
             var encodedKey = new AnonymousTokenValidationKey("id", "P-256", ecParameters, result.PublicKey).GetEncodedKey();
             var keyDto = result.AsValidationKey().AsKeyDto();
-            var clientSideEcParameters = CustomNamedCurves.GetByOid(X9ObjectIdentifiers.Prime256v1); // Matches keyDto.Crv == "P-256"
+
+            var clientSideEcParameters = CustomNamedCurves.GetByName(keyDto.Crv); // Matches keyDto.Crv == "P-256"
             var clientSidePublicKeyPoint = clientSideEcParameters.Curve.DecodePoint(Convert.FromBase64String(keyDto.K));
-            var clientSideDomainParams = new ECDomainParameters(ecParameters);
-            var clientSidePublicKey = new ECPublicKeyParameters("ECDSA", clientSidePublicKeyPoint, clientSideDomainParams);
-            var W = initiator.RandomiseToken(clientSideEcParameters, clientSidePublicKey, P, Q, c, z, r);
+            clientSideEcParameters.Curve.CreatePoint(new BigInteger(Convert.FromBase64String(keyDto.X)), new BigInteger(Convert.FromBase64String(keyDto.Y)));
+            var clientSidePublicKey = new ECPublicKeyParameters("ECDSA", clientSidePublicKeyPoint, new ECDomainParameters(ecParameters));
+            var K = clientSidePublicKey;
+
+            var W = initiator.RandomiseToken(clientSideEcParameters, K, P, Q, c, z, r);
 
             var tokenVerifier = new TokenVerifier(new InMemorySeedStore());
             var isVerified = await tokenVerifier.VerifyTokenAsync(result.PrivateKey, ecParameters.Curve, t, W);

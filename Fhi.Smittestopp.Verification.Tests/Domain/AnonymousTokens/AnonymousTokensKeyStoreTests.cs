@@ -240,8 +240,7 @@ namespace Fhi.Smittestopp.Verification.Tests.Domain.AnonymousTokens
             var keyDto = result.AsValidationKey().AsKeyDto();
 
             var clientSideEcParameters = CustomNamedCurves.GetByName(keyDto.Crv); // Matches keyDto.Crv == "P-256"
-            var clientSidePublicKeyPoint = clientSideEcParameters.Curve.DecodePoint(Convert.FromBase64String(keyDto.K));
-            clientSideEcParameters.Curve.CreatePoint(new BigInteger(Convert.FromBase64String(keyDto.X)), new BigInteger(Convert.FromBase64String(keyDto.Y)));
+            var clientSidePublicKeyPoint = clientSideEcParameters.Curve.CreatePoint(new BigInteger(Convert.FromBase64String(keyDto.X)), new BigInteger(Convert.FromBase64String(keyDto.Y)));
             var clientSidePublicKey = new ECPublicKeyParameters("ECDSA", clientSidePublicKeyPoint, new ECDomainParameters(ecParameters));
             var K = clientSidePublicKey;
 

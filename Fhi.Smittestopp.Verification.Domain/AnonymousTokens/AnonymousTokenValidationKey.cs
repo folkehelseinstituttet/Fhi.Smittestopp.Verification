@@ -36,9 +36,7 @@ namespace Fhi.Smittestopp.Verification.Domain.AnonymousTokens
                 Kty = KeyType,
                 Crv = CurveName,
                 X = Convert.ToBase64String(PublicKey.Q.AffineXCoord.ToBigInteger().ToByteArray()),
-                Y = Convert.ToBase64String(PublicKey.Q.AffineYCoord.ToBigInteger().ToByteArray()),
-                K = Convert.ToBase64String(PublicKey.Q.GetEncoded()),
-                PublicKeyAsHex = GetEncodedKey()
+                Y = Convert.ToBase64String(PublicKey.Q.AffineYCoord.ToBigInteger().ToByteArray())
             };
         }
     }

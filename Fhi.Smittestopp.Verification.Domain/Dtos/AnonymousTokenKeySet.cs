@@ -14,7 +14,5 @@ namespace Fhi.Smittestopp.Verification.Domain.Dtos
         public string Crv { get; set; }
         public string X { get; set; }
         public string Y { get; set; }
-        public string K { get; set; }
-        public string PublicKeyAsHex { get; set; }
     }
 }

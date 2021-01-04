@@ -36,6 +36,7 @@ namespace Fhi.Smittestopp.Verification.Tests.Domain.AnonymousTokens
                 .SetupOptions(new AnonymousTokensConfig
                 {
                     KeyRotationEnabled = false,
+                    CurveName = "P-256",
                     MasterKeyCertId = "master-key-cert"
                 });
 
@@ -75,6 +76,7 @@ namespace Fhi.Smittestopp.Verification.Tests.Domain.AnonymousTokens
                 .SetupOptions(new AnonymousTokensConfig
                 {
                     KeyRotationEnabled = true,
+                    CurveName = "P-256",
                     MasterKeyCertId = "master-key-cert",
                     KeyRotationInterval = TimeSpan.FromDays(3),
                     KeyRotationRollover = TimeSpan.FromDays(4)
@@ -115,7 +117,8 @@ namespace Fhi.Smittestopp.Verification.Tests.Domain.AnonymousTokens
                 .SetupOptions(new AnonymousTokensConfig
                 {
                     KeyRotationEnabled = false,
-                    MasterKeyCertId = "master-key-cert"
+                    MasterKeyCertId = "master-key-cert",
+                    CurveName = "P-256"
                 });
 
             automocker
@@ -158,6 +161,7 @@ namespace Fhi.Smittestopp.Verification.Tests.Domain.AnonymousTokens
                 .SetupOptions(new AnonymousTokensConfig
                 {
                     KeyRotationEnabled = true,
+                    CurveName = "P-256",
                     MasterKeyCertId = "master-key-cert",
                     KeyRotationInterval = TimeSpan.FromDays(3),
                     KeyRotationRollover = TimeSpan.FromDays(4)
@@ -203,6 +207,7 @@ namespace Fhi.Smittestopp.Verification.Tests.Domain.AnonymousTokens
                 .SetupOptions(new AnonymousTokensConfig
                 {
                     KeyRotationEnabled = true,
+                    CurveName = "P-256",
                     MasterKeyCertId = "master-key-cert",
                     KeyRotationInterval = TimeSpan.FromDays(3),
                     KeyRotationRollover = TimeSpan.FromDays(4)
@@ -236,7 +241,6 @@ namespace Fhi.Smittestopp.Verification.Tests.Domain.AnonymousTokens
             var tokenGenerator = new TokenGenerator();
             var (Q, c, z) = tokenGenerator.GenerateToken(result.PrivateKey, result.PublicKey.Q, ecParameters, P);
 
-            var encodedKey = new AnonymousTokenValidationKey("id", "P-256", ecParameters, result.PublicKey).GetEncodedKey();
             var keyDto = result.AsValidationKey().AsKeyDto();
 
             var clientSideEcParameters = CustomNamedCurves.GetByName(keyDto.Crv); // Matches keyDto.Crv == "P-256"

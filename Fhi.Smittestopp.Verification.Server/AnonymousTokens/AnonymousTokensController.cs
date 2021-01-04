@@ -6,6 +6,7 @@ using Fhi.Smittestopp.Verification.Domain.Dtos;
 using IdentityModel;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Optional;
@@ -15,6 +16,7 @@ namespace Fhi.Smittestopp.Verification.Server.AnonymousTokens
 {
     [ApiController]
     [Route("api/[controller]")]
+    [EnableCors(CorsPolicies.AnonymousTokens)]
     public class AnonymousTokensController : ControllerBase
     {
         private readonly IMediator _mediator;
@@ -26,7 +28,7 @@ namespace Fhi.Smittestopp.Verification.Server.AnonymousTokens
             _logger = logger;
         }
 
-        [Authorize(Policy = Policies.AnonymousTokens)]
+        [Authorize(Policy = AuthPolicies.AnonymousTokens)]
         [HttpPost]
         public async Task<ActionResult<AnonymousTokenResponse>> IssueNewToken(AnonymousTokenRequest request)
         {

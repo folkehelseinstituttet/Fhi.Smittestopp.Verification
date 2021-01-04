@@ -18,7 +18,6 @@ using NUnit.Framework;
 
 using Optional.Unsafe;
 
-using Org.BouncyCastle.Asn1.X9;
 using Org.BouncyCastle.Crypto.EC;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Math;
@@ -110,7 +109,8 @@ namespace Fhi.Smittestopp.Verification.Tests.Domain.AnonymousTokens
             //Arrange
             var automocker = new AutoMocker();
 
-            var ecParameters = CustomNamedCurves.GetByOid(X9ObjectIdentifiers.Prime256v1);
+            var curveName = "P-256";
+            var ecParameters = CustomNamedCurves.GetByName(curveName);
 
             var initiator = new Initiator();
             var init = initiator.Initiate(ecParameters.Curve);
@@ -148,7 +148,7 @@ namespace Fhi.Smittestopp.Verification.Tests.Domain.AnonymousTokens
 
             automocker
                 .Setup<IAnonymousTokensKeyStore, Task<AnonymousTokenSigningKeypair>>(x => x.GetActiveSigningKeyPair())
-                .ReturnsAsync(new AnonymousTokenSigningKeypair("some-kid-123", "P-256", ecParameters, privateKey, publicKey));
+                .ReturnsAsync(new AnonymousTokenSigningKeypair("some-kid-123", curveName, privateKey, publicKey));
 
             automocker
                 .Setup<IPrivateKeyStore, Task<BigInteger>>(x => x.GetAsync()).Returns(new InMemoryPrivateKeyStore().GetAsync());
@@ -157,7 +157,7 @@ namespace Fhi.Smittestopp.Verification.Tests.Domain.AnonymousTokens
                 .Setup<IPublicKeyStore, Task<ECPublicKeyParameters>>(x => x.GetAsync()).Returns(new InMemoryPublicKeyStore().GetAsync());
 
             automocker
-                .Setup<ITokenGenerator, (ECPoint, BigInteger, BigInteger)>(x => x.GenerateToken(privateKey, publicKey.Q, ecParameters, It.Is<ECPoint>(x => x.Equals(P))))
+                .Setup<ITokenGenerator, (ECPoint, BigInteger, BigInteger)>(x => x.GenerateToken(privateKey, publicKey.Q, ecParameters, It.Is<ECPoint>(y => y.Equals(P))))
                 .Returns((expectedQ, expectedProofC, expectedProofZ));
 
             var target = automocker.CreateInstance<IssueAnonymousToken.Handler>();
@@ -169,13 +169,13 @@ namespace Fhi.Smittestopp.Verification.Tests.Domain.AnonymousTokens
             using (new AssertionScope())
             {
                 result.HasValue.Should().BeTrue();
-                var anonymousTokenReponse = result.ValueOrFailure();
+                var anonymousTokenResponse = result.ValueOrFailure();
 
-                anonymousTokenReponse.Should().NotBeNull();
+                anonymousTokenResponse.Should().NotBeNull();
 
-                var Q = ecParameters.Curve.DecodePoint(Hex.Decode(anonymousTokenReponse.QAsHex));
-                var c = new BigInteger(Hex.Decode(anonymousTokenReponse.ProofCAsHex));
-                var z = new BigInteger(Hex.Decode(anonymousTokenReponse.ProofZAsHex));
+                var Q = ecParameters.Curve.DecodePoint(Hex.Decode(anonymousTokenResponse.QAsHex));
+                var c = new BigInteger(Hex.Decode(anonymousTokenResponse.ProofCAsHex));
+                var z = new BigInteger(Hex.Decode(anonymousTokenResponse.ProofZAsHex));
 
                 Q.Should().Be(expectedQ);
                 c.Should().Be(expectedProofC);

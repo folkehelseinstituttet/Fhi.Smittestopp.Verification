@@ -29,6 +29,13 @@
   <h2>Identity claims</h2>
   <pre>{{identityClaims|json}}</pre>
 
+  <h2>Anonymous token</h2>
+  <pre *ngIf="anonymousTokenResponse">{{anonymousTokenResponse|json}}</pre>
+  <pre *ngIf="anonymousTokenError">{{anonymousTokenError|json}}</pre>
+  <button (click)="requestAnonymousToken()">Request anonymous token</button>
+
+  <br/><br/>
+
   <button (click)="startLogout()">Logout</button>
 
   <button (click)="reset()">Reset view</button>

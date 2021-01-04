@@ -14,6 +14,7 @@ using MediatR;
 
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Cors.Infrastructure;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.AspNetCore.Hosting;
@@ -43,6 +44,8 @@ namespace Fhi.Smittestopp.Verification.Server
             services.AddHealthChecks(Configuration.GetSection("health"));
 
             services.AddSingleton<IActionContextAccessor, ActionContextAccessor>();
+
+            services.AddTransient<ICorsPolicyProvider, CustomCorsPolicyProvider>();
 
             services.AddDataProtection()
                 .PersistKeysToDbContext<VerificationDbContext>();
@@ -94,7 +97,7 @@ namespace Fhi.Smittestopp.Verification.Server
 
             services.AddAuthorization(opt =>
             {
-                opt.AddPolicy(Policies.AnonymousTokens, p => p
+                opt.AddPolicy(AuthPolicies.AnonymousTokens, p => p
                     .AddAuthenticationSchemes(IdentityServerSelfAuthScheme.Scheme)
                     .RequireClaim(VerificationClaims.AnonymousToken, VerificationClaims.AnonymousTokenValues.Available));
             });

@@ -1,19 +1,15 @@
 ﻿using System;
 using Fhi.Smittestopp.Verification.Domain.Dtos;
-using Org.BouncyCastle.Asn1.X9;
 using Org.BouncyCastle.Crypto.Parameters;
-using Org.BouncyCastle.Utilities.Encoders;
-using Org.BouncyCastle.X509;
 
 namespace Fhi.Smittestopp.Verification.Domain.AnonymousTokens
 {
     public class AnonymousTokenValidationKey
     {
-        public AnonymousTokenValidationKey(string kid, string curveName, X9ECParameters ecParameters, ECPublicKeyParameters publicKey)
+        public AnonymousTokenValidationKey(string kid, string curveName, ECPublicKeyParameters publicKey)
         {
             Kid = kid;
             CurveName = curveName;
-            EcParameters = ecParameters;
             PublicKey = publicKey;
         }
 
@@ -21,12 +17,6 @@ namespace Fhi.Smittestopp.Verification.Domain.AnonymousTokens
         public string KeyType => "EC";
         public string CurveName { get; set; }
         public ECPublicKeyParameters PublicKey { get; set; }
-        public X9ECParameters EcParameters { get; set; }
-
-        public string GetEncodedKey()
-        {
-            return Hex.ToHexString(SubjectPublicKeyInfoFactory.CreateSubjectPublicKeyInfo(PublicKey).GetEncoded());
-        }
 
         public AnonymousTokenKey AsKeyDto()
         {

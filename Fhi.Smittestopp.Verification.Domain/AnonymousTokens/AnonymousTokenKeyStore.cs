@@ -1,13 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Security.Cryptography.X509Certificates;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Options;
-using Org.BouncyCastle.Asn1.X9;
 using Org.BouncyCastle.Crypto.EC;
 
 namespace Fhi.Smittestopp.Verification.Domain.AnonymousTokens
@@ -80,11 +77,10 @@ namespace Fhi.Smittestopp.Verification.Domain.AnonymousTokens
         private async Task<AnonymousTokenSigningKeypair> CreateKeyPairForInterval(long keyIntervalNumber)
         {
             var masterKeyCert = await _masterKeyCertLocator.GetMasterKeyCertificate();
-            var crvName = "P-256";
-            var ecParameters = CustomNamedCurves.GetByOid(X9ObjectIdentifiers.Prime256v1);
+            var ecParameters = CustomNamedCurves.GetByName(_config.CurveName);
             var keyPairGenerator = new RollingKeyPairGenerator(masterKeyCert, ecParameters);
             var (privateKey, publiceKey) = keyPairGenerator.GenerateKeyPairForInterval(keyIntervalNumber);
-            return new AnonymousTokenSigningKeypair(keyIntervalNumber.ToString(), crvName, ecParameters, privateKey, publiceKey);
+            return new AnonymousTokenSigningKeypair(keyIntervalNumber.ToString(), _config.CurveName, privateKey, publiceKey);
         }
 
         private long GetActiveKeyIntervalNumber()

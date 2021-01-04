@@ -15,6 +15,7 @@ namespace Fhi.Smittestopp.Verification.Tests.Domain.Models
         {
             //Arrange
             var limitDuration = TimeSpan.FromHours(3);
+            var epsilon = TimeSpan.FromMilliseconds(1);
             var config = new VerificationLimitConfig
             {
                 MaxLimitDuration = limitDuration
@@ -32,7 +33,7 @@ namespace Fhi.Smittestopp.Verification.Tests.Domain.Models
             var testEnd = DateTime.UtcNow;
 
             //Assert
-            result.Should().BeAfter(testStart - limitDuration).And.BeBefore(testEnd - limitDuration);
+            result.Should().BeAfter(testStart - limitDuration - epsilon).And.BeBefore(testEnd - limitDuration + epsilon);
         }
 
         [Test]

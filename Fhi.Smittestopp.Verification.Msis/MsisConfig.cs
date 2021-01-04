@@ -1,9 +1,8 @@
 ﻿using System;
 using System.Net.Http;
 using System.Security.Authentication;
-using System.Security.Cryptography.X509Certificates;
-using System.Threading;
 using Fhi.Smittestopp.Verification.Domain.Interfaces;
+using Fhi.Smittestopp.Verification.Domain.Utilities;
 using Fhi.Smittestopp.Verification.Msis.Interfaces;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Configuration;
@@ -22,44 +21,15 @@ namespace Fhi.Smittestopp.Verification.Msis
         public string CertId { get; set; }
     }
 
-    public interface IMsisClientCertLocator
+    public interface IMsisClientCertLocator : ICachedCertLocator
     {
-        X509Certificate2 GetClientCert();
     }
 
-    public class MsisClientCertLocator : IMsisClientCertLocator
+    public class MsisClientCertLocator : CachedCertLocator, IMsisClientCertLocator
     {
-        private const string MemoryCacheKey = "MsisClientCert";
-
-        private readonly string _certId;
-
-        private readonly ICertificateLocator _certLocator;
-        private readonly IMemoryCache _cache;
-
-        private readonly SemaphoreSlim _cacheLock = new SemaphoreSlim(1);
-
         public MsisClientCertLocator(IOptions<Config> config, ICertificateLocator certLocator, IMemoryCache cache)
+        : base(config.Value.CertId, nameof(MsisClientCertLocator), certLocator, cache)
         {
-            _certLocator = certLocator;
-            _cache = cache;
-            _certId = config.Value.CertId;
-        }
-
-        public X509Certificate2 GetClientCert()
-        {
-            _cacheLock.Wait();
-            try
-            {
-                return _cache.GetOrCreate(MemoryCacheKey, (cache) =>
-                {
-                    cache.AbsoluteExpiration = DateTime.Now.AddDays(1);
-                    return _certLocator.GetCertificate(_certId);
-                }).ValueOr(() => throw new Exception("Unable to locate MSIS client certificate for ID: " + _certId));
-            }
-            finally
-            {
-                _cacheLock.Release();
-            }
         }
 
         public class Config
@@ -94,7 +64,7 @@ namespace Fhi.Smittestopp.Verification.Msis
                     })
                     .ConfigurePrimaryHttpMessageHandler(s =>
                     {
-                        var cert = s.GetService<IMsisClientCertLocator>().GetClientCert();
+                        var cert = s.GetService<IMsisClientCertLocator>().GetCertificate();
                         var handler = new HttpClientHandler
                         {
                             ClientCertificateOptions = ClientCertificateOption.Manual,

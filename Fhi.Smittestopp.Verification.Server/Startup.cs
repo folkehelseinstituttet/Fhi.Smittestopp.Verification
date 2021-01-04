@@ -1,12 +1,20 @@
-﻿using Fhi.Smittestopp.Verification.Domain;
+﻿
+using Fhi.Smittestopp.Verification.Domain;
+using Fhi.Smittestopp.Verification.Domain.Constants;
 using Fhi.Smittestopp.Verification.Domain.Users;
 using Fhi.Smittestopp.Verification.Msis;
 using Fhi.Smittestopp.Verification.Persistence;
 using Fhi.Smittestopp.Verification.Server.Account;
+using Fhi.Smittestopp.Verification.Server.Authentication;
 using Fhi.Smittestopp.Verification.Server.ExternalController;
+
 using IdentityServer4.EntityFramework.DbContexts;
+
 using MediatR;
+
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Cors.Infrastructure;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.AspNetCore.Hosting;
@@ -36,6 +44,8 @@ namespace Fhi.Smittestopp.Verification.Server
             services.AddHealthChecks(Configuration.GetSection("health"));
 
             services.AddSingleton<IActionContextAccessor, ActionContextAccessor>();
+
+            services.AddTransient<ICorsPolicyProvider, CustomCorsPolicyProvider>();
 
             services.AddDataProtection()
                 .PersistKeysToDbContext<VerificationDbContext>();
@@ -85,9 +95,19 @@ namespace Fhi.Smittestopp.Verification.Server
 
             services.AddPersistence(Configuration.GetConnectionString("verificationDb"));
 
+            services.AddAuthorization(opt =>
+            {
+                opt.AddPolicy(AuthPolicies.AnonymousTokens, p => p
+                    .AddAuthenticationSchemes(IdentityServerSelfAuthScheme.Scheme)
+                    .RequireClaim(VerificationClaims.AnonymousToken, VerificationClaims.AnonymousTokenValues.Available));
+            });
+
+            services.AddTransient<IAuthenticationHandler, IdentityServerSelfAuthScheme.AuthenticationHandler>();
+
             services.ConfigureAuthCookies(Configuration.GetSection("authCookies"));
             services.AddAuthentication()
-                .AddIdPortenAuth(Configuration.GetSection("idPorten"));
+                .AddIdPortenAuth(Configuration.GetSection("idPorten"))
+                .AddScheme<IdentityServerSelfAuthScheme.ApiKeyOptions, IdentityServerSelfAuthScheme.AuthenticationHandler>(IdentityServerSelfAuthScheme.Scheme, cfg => { });
         }
 
         public void Configure(IApplicationBuilder app)

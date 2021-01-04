@@ -13,7 +13,7 @@ namespace Fhi.Smittestopp.Verification.Tests.Domain.DataCleanup
     public class DeleteExpiredDataTests
     {
         [Test]
-        public async Task Handle_DeletesWithCutoffFromLimitConfig()
+        public async Task Handle_DeletesVerificationRecordsWithCutoffFromLimitConfig()
         {
             var verLimitDuration = TimeSpan.FromHours(new Random().Next(12, 48));
 
@@ -36,6 +36,26 @@ namespace Fhi.Smittestopp.Verification.Tests.Domain.DataCleanup
                     testStart - verLimitDuration,
                     testEnd - verLimitDuration,
                     Moq.Range.Inclusive)));
+        }
+
+
+        [Test]
+        public async Task Handle_DeletesExpiredAnonymousTokenIssueRecords()
+        {
+            var limitConfigMock = new Mock<IVerificationLimitConfig>();
+            limitConfigMock.Setup(x => x.MaxLimitDuration).Returns(TimeSpan.FromHours(24));
+
+            var automocker = new AutoMocker();
+
+            automocker.Setup<IVerificationLimit, IVerificationLimitConfig>(x => x.Config)
+                .Returns(limitConfigMock.Object);
+
+            var target = automocker.CreateInstance<DeleteExpiredData.Handler>();
+
+            await target.Handle(new DeleteExpiredData.Command(), new CancellationToken());
+
+            automocker.Verify<IAnonymousTokenIssueRecordRepository>(x =>
+                x.DeleteExpiredRecords());
         }
     }
 }

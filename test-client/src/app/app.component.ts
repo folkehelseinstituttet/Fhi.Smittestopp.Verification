@@ -2,6 +2,8 @@ import { Component } from '@angular/core';
 import { OAuthService } from 'angular-oauth2-oidc';
 import { createAuthConfig } from './auth.config';
 import { filter } from 'rxjs/operators';
+import { HttpClient } from '@angular/common/http';
+import { environment } from 'src/environments/environment';
 
 @Component({
   selector: 'app-root',
@@ -20,7 +22,10 @@ export class AppComponent {
   grantedScopes: any;
   identityClaims: any;
 
-  constructor(private oauthService: OAuthService) {
+  anonymousTokenResponse: any;
+  anonymousTokenError: string;
+
+  constructor(private oauthService: OAuthService, private http: HttpClient) {
     // Automatically load user profile
     this.oauthService.events
       .pipe(filter(e => e.type === 'token_received'))
@@ -53,6 +58,39 @@ export class AppComponent {
     this.accessToken = null;
     this.grantedScopes = null;
     this.identityClaims = null;
+    this.anonymousTokenResponse = null;
+    this.anonymousTokenError = null;
+  }
+
+  async requestAnonymousToken(): Promise<any> {
+    if (this.accessToken == null) {
+      return null;
+    }
+
+    this.anonymousTokenResponse = null;
+    this.anonymousTokenError = null;
+
+    var tokenRequest = {
+      pAsHex: "0441d6f9552b03d9faf1a079b73f3d658f00879c5d3ceb3b49a4355defa6c70d280e285449c19ba3fe251e6d25d76d14c154d437ab21d42c06f6ceed548276b1ac"
+    };
+    
+    try {
+      var response = await this.http.post(
+        environment.authIssuer + "/api/anonymoustokens",
+        tokenRequest,
+        {
+          headers: {
+            "Authorization": "Bearer " + this.accessToken
+          }
+        })
+      .toPromise();
+  
+      this.anonymousTokenResponse = response;
+      return this.anonymousTokenResponse;
+    } catch (e) {
+      this.anonymousTokenError = e && e.message ? e.message : e;
+      return null;
+    }
   }
 
   private initOauth(scopes: string = null, forceLoginPrompt: boolean = false) {

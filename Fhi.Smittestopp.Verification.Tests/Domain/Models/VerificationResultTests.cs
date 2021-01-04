@@ -19,7 +19,7 @@ namespace Fhi.Smittestopp.Verification.Tests.Domain.Models
         {
             var target = new VerificationResult();
 
-            var verificationClaims = target.GetVerificationClaims().ToList();
+            var verificationClaims = target.GetVerificationClaims(true).ToList();
 
             verificationClaims.Should().Contain(c => c.Type == DkSmittestopClaims.Covid19Status && c.Value == DkSmittestopClaims.StatusValues.Negative);
         }
@@ -45,7 +45,7 @@ namespace Fhi.Smittestopp.Verification.Tests.Domain.Models
                 PositiveTestDate = testdata.Some()
             }, new VerificationRecord[0], new Mock<IVerificationLimit>().Object);
 
-            var verificationClaims = target.GetVerificationClaims().ToList();
+            var verificationClaims = target.GetVerificationClaims(true).ToList();
 
             verificationClaims.Should().Contain(c => c.Type == JwtClaimTypes.Role && c.Value == VerificationRoles.VerifiedPositive);
             verificationClaims.Should().Contain(c => c.Type == VerificationClaims.VerifiedPositiveTestDate && c.Value == testdata.ToString("yyyy-MM-dd"));

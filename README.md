@@ -8,14 +8,13 @@ You can launch the web application through the `dotnet run` command from the `Fh
 
 ### ID-porten
 
-To perform logins through ID-porten (Test environment) you will also need a registered client for ID-porten Ver1 with "https://localhost:5001/signin-oidc" as a valid post login return url, and "https://localhost:5001/signout-callback-oidc" as a post logout return url.
+To perform logins through ID-porten (Test environment) you will also need a registered client for ID-porten Ver1 with "https://localhost:5001/signin-oidc" as a valid post login return url, and "https://localhost:5001/signout-callback-oidc" as a post logout return url (add http:// equivalent return urls if you intent to use the "SelfHost-HttpAndMsisMock" launch profile).
 You will also need a valid test user to perform a login, ID-porten has a list of available test users [here](https://difi.github.io/felleslosninger/idporten_testbrukere.html)
 
 Run the following command from the `Fhi.Smittestopp.Verification.Server` folder to use your own client.
 
-`dotnet user-secrets set "idPorten:clientId" "<your-client-id>"`
-
-`dotnet user-secrets set "idPorten:clientSecret" "<your-client-secret>"`
+1. `dotnet user-secrets set "idPorten:clientId" "<your-client-id>"`
+2. `dotnet user-secrets set "idPorten:clientSecret" "<your-client-secret>"`
 
 ### Database
 
@@ -47,9 +46,35 @@ The JWT-tokens are also signed using a X509Certificate, unless the setting for d
 Some setup may be required for your development environment.
 For simplicity, the dev environment has been configured to use the same self signed certificate for all use cases (but the certificates may be ignored, depending on the launch profile used).
 Install the self signed certificate dev-cert.pfx (password='dev', valid until 2021-11-18) to the "Local Machine" store location to support all the launch profiles above without changing the configuration, or alternatively change the config to use your own certificate.
-You must also grant access to the private key of the certificate to the user that will be running the application.
+You must also grant access to the private key of the certificate to the user that will be running the application (step 3 below).
 
-### Test client
+In order to work with the Fhi.Smittestopp.App, you need to configure a local certificate using the following steps (skip to step 3. if you have installed the dev-cert.pfx from this repo)
+
+1. Generate a certificate for Local Computer, e.g. with PowerShell as Administrator: `New-SelfsignedCertificate -KeyExportPolicy Exportable -Subject "CN=SmittestoppIdCert" -KeySpec Signature -KeyAlgorithm RSA -KeyLength 2048 -HashAlgorithm SHA256 -CertStoreLocation "cert:\LocalMachine\My"`
+2. Copy the fingerprint of the certificate as `signingCredentials.Signing` in `appsettings.Development.json`
+3. Start "Manage Computer Certificates" and find the certificate under Personal\Certificates. Right click > All tasks > Manage Private Keys and add your user to the list of users that can access the certificate
+4. After starting the server, go to http://localhost:5001/.well-known/openid-configuration/jwks and copy the `x5c` value into `OAuthConf.cs` in Fhi.Smittestopp.App as the value of `OAUTH2_VERIFY_TOKEN_PUBLIC_KEY
+
+## Combining App and Verification in local development environment
+
+### Running on http for localhost
+
+Verification Server can run with http or https, but when running in Visual Studio, a self signed certificate will be used, which then will have to be trusted by the app. To avoid this problem, you could run the app on http using the following steps:
+
+1. Your ID-porten client must have http://localhost:5001/signin-oidc as a valid redirect uri (http, not https)
+2. Use the launch profile "SelfHost-HttpAndMsisMock" when starting the application
+
+### Debugging with App and Verification server
+
+The app must run on a real device, as Expose Notification framework is not enabled on the Android emulator or iPhone simulator. The app must be attached with debugger and you must have set up `adb` correctly.
+
+1. Connect the phone
+2. Make the phone able to connect to the host computer: In a terminal window, run `adb reverse tcp:5001 tcp:5001`
+3. Make sure the app has the correct value for OAUTH2_VERIFY_TOKEN_PUBLIC_KEY in OAuthConf
+4. Start the app from Visual Studio in the debugger
+5. The app should now be able to authorize with ID-porten when reporting infection. You can debug both the app and the Verification server in Visual Studio
+
+## Test client
 
 A basic test SPA client has been included in this repository to test the OIDC logins against the application.
 To run this client you will need Node.js installed.

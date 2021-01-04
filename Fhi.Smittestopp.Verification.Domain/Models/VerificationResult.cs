@@ -19,7 +19,8 @@ namespace Fhi.Smittestopp.Verification.Domain.Models
             DkSmittestopClaims.Covid19Blocked,
             DkSmittestopClaims.Covid19LimitDuration,
             DkSmittestopClaims.Covid19LimitCount,
-            VerificationClaims.VerifiedPositiveTestDate
+            VerificationClaims.VerifiedPositiveTestDate,
+            VerificationClaims.AnonymousToken
         };
 
         private Option<PositiveTestResult> _testresult;
@@ -51,7 +52,7 @@ namespace Fhi.Smittestopp.Verification.Domain.Models
         public Option<IVerificationLimitConfig> VerificationLimitConfig { get; }
         public Option<DateTime> PositiveTestDate => _testresult.FlatMap(x => x.PositiveTestDate);
 
-        public IEnumerable<Claim> GetVerificationClaims()
+        public IEnumerable<Claim> GetVerificationClaims(bool enableAnonymousTokens)
         {
             var claims = new List<Claim>();
 
@@ -61,6 +62,11 @@ namespace Fhi.Smittestopp.Verification.Domain.Models
 
                 claims.Add(new Claim(DkSmittestopClaims.Covid19Status, DkSmittestopClaims.StatusValues.Positive));
                 claims.Add(new Claim(DkSmittestopClaims.Covid19Blocked, VerificationLimitExceeded.ToString().ToLowerInvariant()));
+
+                if (enableAnonymousTokens && !VerificationLimitExceeded)
+                {
+                    claims.Add(new Claim(VerificationClaims.AnonymousToken, VerificationClaims.AnonymousTokenValues.Available));
+                }
             }
             else
             {

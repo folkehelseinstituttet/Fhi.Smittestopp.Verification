@@ -3,6 +3,7 @@ using System.Security.Cryptography.X509Certificates;
 using System.Threading.Tasks;
 using Fhi.Smittestopp.Verification.Domain.AnonymousTokens;
 using Fhi.Smittestopp.Verification.Domain.Interfaces;
+using Fhi.Smittestopp.Verification.Domain.Utilities;
 using Fhi.Smittestopp.Verification.Tests.TestUtils;
 using FluentAssertions;
 using Microsoft.Extensions.Caching.Memory;
@@ -44,7 +45,7 @@ namespace Fhi.Smittestopp.Verification.Tests.Domain.AnonymousTokens
 
             var target = automocker.CreateInstance<AnonymousTokenMasterKeyCertificateLocator>();
 
-            Assert.ThrowsAsync<Exception>(() => target.GetMasterKeyCertificate());
+            Assert.ThrowsAsync<CertificateNotFoundException>(() => target.GetMasterKeyCertificate());
         }
 
         [Test]
@@ -67,7 +68,7 @@ namespace Fhi.Smittestopp.Verification.Tests.Domain.AnonymousTokens
 
             var target = automocker.CreateInstance<AnonymousTokenMasterKeyCertificateLocator>();
 
-            Assert.ThrowsAsync<Exception>(() => target.GetMasterKeyCertificate());
+            Assert.ThrowsAsync<CertificateNotFoundException>(() => target.GetMasterKeyCertificate());
         }
 
         [Test]

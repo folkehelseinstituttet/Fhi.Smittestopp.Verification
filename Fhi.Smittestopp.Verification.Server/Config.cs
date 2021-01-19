@@ -213,7 +213,7 @@ namespace Fhi.Smittestopp.Verification.Server
         {
             if (config["sameSiteLax"] == "True")
             {
-                // Override SameSite=None with SameSite=Strict, to make modern browsers accept the cookies for http
+                // Override SameSite=None with SameSite=Lax, to make modern browsers accept the cookies for http
                 // NB! This does break silent token refresh, should that ever be needed.
                 services.Configure<CookieAuthenticationOptions>(IdentityServerConstants.DefaultCookieAuthenticationScheme, options =>
                 {

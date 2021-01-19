@@ -1,6 +1,6 @@
-﻿using System;
-using System.Security.Cryptography.X509Certificates;
+﻿using System.Security.Cryptography.X509Certificates;
 using Fhi.Smittestopp.Verification.Domain.Interfaces;
+using Fhi.Smittestopp.Verification.Domain.Utilities;
 using Fhi.Smittestopp.Verification.Msis;
 using Fhi.Smittestopp.Verification.Tests.TestUtils;
 using FluentAssertions;
@@ -43,7 +43,7 @@ namespace Fhi.Smittestopp.Verification.Tests.Msis
 
             var target = automocker.CreateInstance<MsisClientCertLocator>();
 
-            Assert.Throws<Exception>(() => target.GetCertificate());
+            Assert.Throws<CertificateNotFoundException>(() => target.GetCertificate());
         }
 
         [Test]
@@ -66,7 +66,7 @@ namespace Fhi.Smittestopp.Verification.Tests.Msis
 
             var target = automocker.CreateInstance<MsisClientCertLocator>();
 
-            Assert.Throws<Exception>(() => target.GetCertificate());
+            Assert.Throws<CertificateNotFoundException>(() => target.GetCertificate());
         }
 
         [Test]

@@ -6,6 +6,23 @@
 To run this application you will need the .NET Core 3.1 SDK.
 You can launch the web application through the `dotnet run` command from the `Fhi.Smittestopp.Verification.Server` folder.
 
+### Libraries and Frameworks
+
+This application makes use of a number of libraries and frameworks that one would need to be familiar with when developing it further.
+
+- [IdentityServer](https://identityserver4.readthedocs.io/en/latest/): OpenID Connect and OAuth 2.0 framework
+- [MediatR](https://github.com/jbogard/MediatR): Simple mediator for messages and message handlers (IRequest and IRequestHandler)
+- [Optional](https://github.com/nlkl/Optional): A different approach to handling missing values.
+- [Serilog](https://github.com/serilog/serilog): Provides the different log sinks used in different environments
+- [AnonymousTokens](https://github.com/HenrikWM/anonymous-tokens): Provides tools for exhanging a JWT-token for an anonymous token
+
+Additionally, the following libraries are used for testing
+
+- [NUnit](https://github.com/nunit/nunit): The test framework used
+- [Moq](https://github.com/moq/moq4) (with [Moq.Automock](https://github.com/moq/Moq.AutoMocker)): Tools for arranging tests.
+- [FluentAssertions](https://fluentassertions.com/introduction): More understandable asserts.
+
+
 ### ID-porten
 
 To perform logins through ID-porten (Test environment) you will also need a registered client for ID-porten Ver1 with "https://localhost:5001/signin-oidc" as a valid post login return url, and "https://localhost:5001/signout-callback-oidc" as a post logout return url (add http:// equivalent return urls if you intent to use the "SelfHost-HttpAndMsisMock" launch profile).

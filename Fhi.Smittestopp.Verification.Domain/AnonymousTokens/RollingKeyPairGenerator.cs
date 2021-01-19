@@ -62,7 +62,11 @@ namespace Fhi.Smittestopp.Verification.Domain.AnonymousTokens
                 var privateKeyBytes = GeneratePrivateKeyBytes(keyByteSize, masterKeyBytes, keyIntervalNumber, counter);
                 privateKey = new BigInteger(privateKeyBytes);
                 counter++;
-            } while (privateKey.CompareTo(ecParameters.Curve.Order) > 0);
+                if (counter > 1000)
+                {
+                    throw new GeneratePrivateKeyException("Maximum number of iterations exceeded while generating private key within curve order.");
+                }
+            } while (privateKey.CompareTo(ecParameters.Curve.Order) > 0); // Private key must be within curve order
 
             return privateKey;
         }
@@ -86,6 +90,13 @@ namespace Fhi.Smittestopp.Verification.Domain.AnonymousTokens
             var publicKeyPoint = ecParameters.G.Multiply(privateKey);
             var domainParams = new ECDomainParameters(ecParameters);
             return new ECPublicKeyParameters("ECDSA", publicKeyPoint, domainParams);
+        }
+    }
+
+    public class GeneratePrivateKeyException : Exception
+    {
+        public GeneratePrivateKeyException(string message) : base(message)
+        {
         }
     }
 }

@@ -40,7 +40,7 @@ namespace Fhi.Smittestopp.Verification.Domain.Utilities
                 {
                     cache.AbsoluteExpiration = DateTime.Now.AddDays(1);
                     return _certLocator.GetCertificate(_certId);
-                }).ValueOr(() => throw new Exception("Unable to locate certificate for ID: " + _certId));
+                }).ValueOr(() => throw new CertificateNotFoundException("Unable to locate certificate for ID: " + _certId));
             }
             finally
             {
@@ -57,12 +57,19 @@ namespace Fhi.Smittestopp.Verification.Domain.Utilities
                 {
                     cache.AbsoluteExpiration = DateTime.Now.AddDays(1);
                     return _certLocator.GetCertificateAsync(_certId);
-                })).ValueOr(() => throw new Exception("Unable to locate certificate for ID: " + _certId));
+                })).ValueOr(() => throw new CertificateNotFoundException("Unable to locate certificate for ID: " + _certId));
             }
             finally
             {
                 _cacheLock.Release();
             }
+        }
+    }
+
+    public class CertificateNotFoundException : Exception
+    {
+        public CertificateNotFoundException(string message) : base(message)
+        {
         }
     }
 }

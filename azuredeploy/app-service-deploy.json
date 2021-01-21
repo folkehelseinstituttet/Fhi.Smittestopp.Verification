@@ -113,6 +113,11 @@
           "tags": {
             "displayName": "Database"
           },
+          "sku": {
+            "name": "Basic",
+            "tier": "Basic",
+            "capacity": 5
+          },
           "apiVersion": "2020-02-02-preview",
           "dependsOn": [
             "[variables('sqlserverName')]"

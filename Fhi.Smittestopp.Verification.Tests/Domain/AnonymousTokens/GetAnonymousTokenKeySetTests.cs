@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Security.Cryptography.X509Certificates;
 using System.Threading;
 using System.Threading.Tasks;
 using AnonymousTokens.Core.Services.InMemory;
@@ -20,8 +19,8 @@ namespace Fhi.Smittestopp.Verification.Tests.Domain.AnonymousTokens
         {
             var curveName = "P-256";
 
-            var publicKey1 = await new InMemoryPublicKeyStore().GetAsync();
-            var publicKey2 = await new InMemoryPublicKeyStore().GetAsync();
+            var publicKey1 = (await new InMemoryPublicKeyStore().GetAsync()).Q;
+            var publicKey2 = (await new InMemoryPublicKeyStore().GetAsync()).Q;
 
             var validationKeys = new[]
             {
@@ -41,12 +40,12 @@ namespace Fhi.Smittestopp.Verification.Tests.Domain.AnonymousTokens
             result.Keys
                 .Should().Contain(k => 
                     k.Kid == "k1" && k.Crv == curveName && k.Kty == "EC" &&
-                    k.X == Convert.ToBase64String(publicKey1.Q.AffineXCoord.ToBigInteger().ToByteArray()) &&
-                    k.Y == Convert.ToBase64String(publicKey1.Q.AffineYCoord.ToBigInteger().ToByteArray()))
+                    k.X == Convert.ToBase64String(publicKey1.AffineXCoord.ToBigInteger().ToByteArray()) &&
+                    k.Y == Convert.ToBase64String(publicKey1.AffineYCoord.ToBigInteger().ToByteArray()))
                 .And.Contain(k =>
                     k.Kid == "k2" && k.Crv == curveName && k.Kty == "EC" &&
-                    k.X == Convert.ToBase64String(publicKey2.Q.AffineXCoord.ToBigInteger().ToByteArray()) &&
-                    k.Y == Convert.ToBase64String(publicKey2.Q.AffineYCoord.ToBigInteger().ToByteArray()));
+                    k.X == Convert.ToBase64String(publicKey2.AffineXCoord.ToBigInteger().ToByteArray()) &&
+                    k.Y == Convert.ToBase64String(publicKey2.AffineYCoord.ToBigInteger().ToByteArray()));
         }
     }
 }

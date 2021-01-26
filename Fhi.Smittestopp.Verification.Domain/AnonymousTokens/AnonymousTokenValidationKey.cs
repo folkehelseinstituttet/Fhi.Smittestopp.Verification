@@ -1,12 +1,12 @@
 ﻿using System;
 using Fhi.Smittestopp.Verification.Domain.Dtos;
-using Org.BouncyCastle.Crypto.Parameters;
+using Org.BouncyCastle.Math.EC;
 
 namespace Fhi.Smittestopp.Verification.Domain.AnonymousTokens
 {
     public class AnonymousTokenValidationKey
     {
-        public AnonymousTokenValidationKey(string kid, string curveName, ECPublicKeyParameters publicKey)
+        public AnonymousTokenValidationKey(string kid, string curveName, ECPoint publicKey)
         {
             Kid = kid;
             CurveName = curveName;
@@ -16,7 +16,7 @@ namespace Fhi.Smittestopp.Verification.Domain.AnonymousTokens
         public string Kid { get; set; }
         public string KeyType => "EC";
         public string CurveName { get; set; }
-        public ECPublicKeyParameters PublicKey { get; set; }
+        public ECPoint PublicKey { get; set; }
 
         public AnonymousTokenKey AsKeyDto()
         {
@@ -25,8 +25,8 @@ namespace Fhi.Smittestopp.Verification.Domain.AnonymousTokens
                 Kid = Kid,
                 Kty = KeyType,
                 Crv = CurveName,
-                X = Convert.ToBase64String(PublicKey.Q.AffineXCoord.ToBigInteger().ToByteArray()),
-                Y = Convert.ToBase64String(PublicKey.Q.AffineYCoord.ToBigInteger().ToByteArray())
+                X = Convert.ToBase64String(PublicKey.AffineXCoord.ToBigInteger().ToByteArray()),
+                Y = Convert.ToBase64String(PublicKey.AffineYCoord.ToBigInteger().ToByteArray())
             };
         }
     }

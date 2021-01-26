@@ -10,8 +10,6 @@ using Microsoft.Extensions.Options;
 
 using Optional;
 
-using Org.BouncyCastle.Utilities.Encoders;
-
 using System;
 using System.Linq;
 using System.Threading;
@@ -72,16 +70,16 @@ namespace Fhi.Smittestopp.Verification.Domain.AnonymousTokens
             private async Task<AnonymousTokenResponse> CreateAnonymousTokenForRequestAsync(AnonymousTokenRequest request)
             {
                 var signingKeyPair = await _keyStore.GetActiveSigningKeyPair();
-                var k = signingKeyPair.PrivateKey;
-                var K = signingKeyPair.PublicKey;
-                var P = signingKeyPair.EcParameters.Curve.DecodePoint(Hex.Decode(request.PAsHex));
+                var privateKey = signingKeyPair.PrivateKey;
+                var publicKey = signingKeyPair.PublicKey;
+                var maskedPoint = signingKeyPair.EcParameters.Curve.DecodePoint(Convert.FromBase64String(request.MaskedPoint));
 
-                var token = _tokenGenerator.GenerateToken(k, K.Q, signingKeyPair.EcParameters, P);
-                var Q = token.Q;
-                var c = token.c;
-                var z = token.z;
+                var token = _tokenGenerator.GenerateToken(privateKey, publicKey, signingKeyPair.EcParameters, maskedPoint);
+                var signedPoint = token.Q;
+                var proofChallenge = token.c;
+                var proofResponse = token.z;
 
-                return new AnonymousTokenResponse(signingKeyPair.Kid, Q, c, z);
+                return new AnonymousTokenResponse(signingKeyPair.Kid, signedPoint, proofChallenge, proofResponse);
             }
         }
     }

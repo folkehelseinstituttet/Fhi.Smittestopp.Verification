@@ -7,6 +7,7 @@ using Org.BouncyCastle.Crypto.Digests;
 using Org.BouncyCastle.Crypto.Generators;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Math;
+using Org.BouncyCastle.Math.EC;
 
 namespace Fhi.Smittestopp.Verification.Domain.AnonymousTokens
 {
@@ -44,7 +45,7 @@ namespace Fhi.Smittestopp.Verification.Domain.AnonymousTokens
             throw new NotSupportedException($"Unsupported private key for certificate {certificate.Thumbprint}");
         }
 
-        public (BigInteger privateKey, ECPublicKeyParameters publicKey) GenerateKeyPairForInterval(long keyIntervalNumber)
+        public (BigInteger privateKey, ECPoint publicKey) GenerateKeyPairForInterval(long keyIntervalNumber)
         {
             var privateKey = GeneratePrivateKey(_masterKeyBytes, keyIntervalNumber, _ecParameters);
             var publicKey = CalculatePublicKey(privateKey, _ecParameters);
@@ -85,11 +86,14 @@ namespace Fhi.Smittestopp.Verification.Domain.AnonymousTokens
             return keyBytes;
         }
 
-        private static ECPublicKeyParameters CalculatePublicKey(BigInteger privateKey, X9ECParameters ecParameters)
+        private static ECPoint CalculatePublicKey(BigInteger privateKey, X9ECParameters ecParameters)
         {
             var publicKeyPoint = ecParameters.G.Multiply(privateKey);
+            // Extract point from ECPublicKeyParameters to get it in "normal form",
+            // otherwise an InvalidOperationException "point not in normal form" is thrown when used later.
             var domainParams = new ECDomainParameters(ecParameters);
-            return new ECPublicKeyParameters("ECDSA", publicKeyPoint, domainParams);
+            var publicKeyParams = new ECPublicKeyParameters("ECDSA", publicKeyPoint, domainParams);
+            return publicKeyParams.Q;
         }
     }
 

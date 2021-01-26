@@ -33,6 +33,9 @@ export class AppComponent {
         console.debug('state', this.oauthService.state);
         this.oauthService.loadUserProfile();
       });
+
+    // remove this line to allow selecting init mode
+    this.initDkCompatibleMode();
   }
 
   initDefaultMode() {

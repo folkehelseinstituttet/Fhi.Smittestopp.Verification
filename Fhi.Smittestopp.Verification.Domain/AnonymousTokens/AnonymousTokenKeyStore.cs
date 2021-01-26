@@ -79,8 +79,8 @@ namespace Fhi.Smittestopp.Verification.Domain.AnonymousTokens
             var masterKeyCert = await _masterKeyCertLocator.GetMasterKeyCertificate();
             var ecParameters = CustomNamedCurves.GetByName(_config.CurveName);
             var keyPairGenerator = new RollingKeyPairGenerator(masterKeyCert, ecParameters);
-            var (privateKey, publiceKey) = keyPairGenerator.GenerateKeyPairForInterval(keyIntervalNumber);
-            return new AnonymousTokenSigningKeypair(keyIntervalNumber.ToString(), _config.CurveName, privateKey, publiceKey);
+            var (privateKey, publicKey) = keyPairGenerator.GenerateKeyPairForInterval(keyIntervalNumber);
+            return new AnonymousTokenSigningKeypair(keyIntervalNumber.ToString(), _config.CurveName, privateKey, publicKey);
         }
 
         private long GetActiveKeyIntervalNumber()

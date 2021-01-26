@@ -2,6 +2,7 @@
 using Org.BouncyCastle.Crypto.EC;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Math;
+using Org.BouncyCastle.Math.EC;
 
 namespace Fhi.Smittestopp.Verification.Domain.AnonymousTokens
 {
@@ -10,7 +11,7 @@ namespace Fhi.Smittestopp.Verification.Domain.AnonymousTokens
         public AnonymousTokenSigningKeypair(string kid,
             string curveName,
             BigInteger privateKey,
-            ECPublicKeyParameters publicKey)
+            ECPoint publicKey)
         {
             Kid = kid;
             CurveName = curveName;
@@ -21,7 +22,7 @@ namespace Fhi.Smittestopp.Verification.Domain.AnonymousTokens
         public string Kid { get; set; }
         public string CurveName { get; set; }
         public BigInteger PrivateKey { get; set; }
-        public ECPublicKeyParameters PublicKey { get; set; }
+        public ECPoint PublicKey { get; set; }
         public X9ECParameters EcParameters => CustomNamedCurves.GetByName(CurveName);
 
         public AnonymousTokenValidationKey AsValidationKey()

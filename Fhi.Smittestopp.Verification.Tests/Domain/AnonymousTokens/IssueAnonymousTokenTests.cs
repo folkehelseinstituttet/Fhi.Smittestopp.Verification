@@ -21,7 +21,6 @@ using Optional.Unsafe;
 using Org.BouncyCastle.Crypto.EC;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Math;
-using Org.BouncyCastle.Utilities.Encoders;
 
 using System;
 using System.Collections.Generic;
@@ -118,11 +117,12 @@ namespace Fhi.Smittestopp.Verification.Tests.Domain.AnonymousTokens
             var r = init.r;
             var P = init.P;
 
-            var tokenGenerator = new TokenGenerator();
             var privateKey = await new InMemoryPrivateKeyStore().GetAsync();
-            var publicKey = await new InMemoryPublicKeyStore().GetAsync();
+            var publicKey = (await new InMemoryPublicKeyStore().GetAsync()).Q;
+            var signingKeyPair = new AnonymousTokenSigningKeypair("some-kid-123", curveName, privateKey, publicKey);
 
-            var (expectedQ, expectedProofC, expectedProofZ) = tokenGenerator.GenerateToken(privateKey, publicKey.Q, ecParameters, P);
+            var tokenGenerator = new TokenGenerator();
+            var (expectedSignedPoint, expectedProofChallenge, expectedProofResponse) = tokenGenerator.GenerateToken(privateKey, publicKey, ecParameters, P);
 
             var tokenVerifier = new TokenVerifier(new InMemorySeedStore());
 
@@ -132,7 +132,7 @@ namespace Fhi.Smittestopp.Verification.Tests.Domain.AnonymousTokens
                 JwtTokenExpiry = DateTime.Now.AddMinutes(10),
                 RequestData = new AnonymousTokenRequest
                 {
-                    PAsHex = Hex.ToHexString(P.GetEncoded())
+                    MaskedPoint = Convert.ToBase64String(P.GetEncoded())
                 }
             };
 
@@ -148,17 +148,11 @@ namespace Fhi.Smittestopp.Verification.Tests.Domain.AnonymousTokens
 
             automocker
                 .Setup<IAnonymousTokensKeyStore, Task<AnonymousTokenSigningKeypair>>(x => x.GetActiveSigningKeyPair())
-                .ReturnsAsync(new AnonymousTokenSigningKeypair("some-kid-123", curveName, privateKey, publicKey));
+                .ReturnsAsync(signingKeyPair);
 
             automocker
-                .Setup<IPrivateKeyStore, Task<BigInteger>>(x => x.GetAsync()).Returns(new InMemoryPrivateKeyStore().GetAsync());
-
-            automocker
-                .Setup<IPublicKeyStore, Task<ECPublicKeyParameters>>(x => x.GetAsync()).Returns(new InMemoryPublicKeyStore().GetAsync());
-
-            automocker
-                .Setup<ITokenGenerator, (ECPoint, BigInteger, BigInteger)>(x => x.GenerateToken(privateKey, publicKey.Q, ecParameters, It.Is<ECPoint>(y => y.Equals(P))))
-                .Returns((expectedQ, expectedProofC, expectedProofZ));
+                .Setup<ITokenGenerator, (ECPoint, BigInteger, BigInteger)>(x => x.GenerateToken(privateKey, publicKey, ecParameters, It.Is<ECPoint>(y => y.Equals(P))))
+                .Returns((expectedSignedPoint, expectedProofChallenge, expectedProofResponse));
 
             var target = automocker.CreateInstance<IssueAnonymousToken.Handler>();
 
@@ -173,13 +167,13 @@ namespace Fhi.Smittestopp.Verification.Tests.Domain.AnonymousTokens
 
                 anonymousTokenResponse.Should().NotBeNull();
 
-                var Q = ecParameters.Curve.DecodePoint(Hex.Decode(anonymousTokenResponse.QAsHex));
-                var c = new BigInteger(Hex.Decode(anonymousTokenResponse.ProofCAsHex));
-                var z = new BigInteger(Hex.Decode(anonymousTokenResponse.ProofZAsHex));
+                var Q = ecParameters.Curve.DecodePoint(Convert.FromBase64String(anonymousTokenResponse.SignedPoint));
+                var c = new BigInteger(Convert.FromBase64String(anonymousTokenResponse.ProofChallenge));
+                var z = new BigInteger(Convert.FromBase64String(anonymousTokenResponse.ProofResponse));
 
-                Q.Should().Be(expectedQ);
-                c.Should().Be(expectedProofC);
-                z.Should().Be(expectedProofZ);
+                Q.Should().Be(expectedSignedPoint);
+                c.Should().Be(expectedProofChallenge);
+                z.Should().Be(expectedProofResponse);
 
                 var W = initiator.RandomiseToken(ecParameters, publicKey, P, Q, c, z, r);
                 var isVerified = await tokenVerifier.VerifyTokenAsync(privateKey, ecParameters.Curve, t, W);

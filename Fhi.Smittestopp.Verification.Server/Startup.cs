@@ -99,7 +99,7 @@ namespace Fhi.Smittestopp.Verification.Server
             {
                 opt.AddPolicy(AuthPolicies.AnonymousTokens, p => p
                     .AddAuthenticationSchemes(IdentityServerSelfAuthScheme.Scheme)
-                    .RequireClaim(VerificationClaims.AnonymousToken, VerificationClaims.AnonymousTokenValues.Available));
+                    .RequireClaim(VerificationClaims.AnonymousTokenAvailable, VerificationClaims.AnonymousTokenAvailableValues.IsAvailable));
             });
 
             services.AddTransient<IAuthenticationHandler, IdentityServerSelfAuthScheme.AuthenticationHandler>();

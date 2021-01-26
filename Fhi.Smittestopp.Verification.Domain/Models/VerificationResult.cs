@@ -20,7 +20,7 @@ namespace Fhi.Smittestopp.Verification.Domain.Models
             DkSmittestopClaims.Covid19LimitDuration,
             DkSmittestopClaims.Covid19LimitCount,
             VerificationClaims.VerifiedPositiveTestDate,
-            VerificationClaims.AnonymousToken
+            VerificationClaims.AnonymousTokenAvailable
         };
 
         private Option<PositiveTestResult> _testresult;
@@ -65,7 +65,7 @@ namespace Fhi.Smittestopp.Verification.Domain.Models
 
                 if (enableAnonymousTokens && !VerificationLimitExceeded)
                 {
-                    claims.Add(new Claim(VerificationClaims.AnonymousToken, VerificationClaims.AnonymousTokenValues.Available));
+                    claims.Add(new Claim(VerificationClaims.AnonymousTokenAvailable, VerificationClaims.AnonymousTokenAvailableValues.IsAvailable));
                 }
             }
             else

@@ -88,12 +88,8 @@ namespace Fhi.Smittestopp.Verification.Domain.AnonymousTokens
 
         private static ECPoint CalculatePublicKey(BigInteger privateKey, X9ECParameters ecParameters)
         {
-            var publicKeyPoint = ecParameters.G.Multiply(privateKey);
-            // Extract point from ECPublicKeyParameters to get it in "normal form",
-            // otherwise an InvalidOperationException "point not in normal form" is thrown when used later.
-            var domainParams = new ECDomainParameters(ecParameters);
-            var publicKeyParams = new ECPublicKeyParameters("ECDSA", publicKeyPoint, domainParams);
-            return publicKeyParams.Q;
+            // Public key point must be normalized to avoid "point not in normal form" exception later
+            return ecParameters.G.Multiply(privateKey).Normalize();
         }
     }
 

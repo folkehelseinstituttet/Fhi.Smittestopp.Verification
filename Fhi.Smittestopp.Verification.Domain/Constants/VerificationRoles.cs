@@ -2,6 +2,6 @@
 {
     public static class VerificationRoles
     {
-        public const string VerifiedPositive = "verified-positive";
+        public const string UploadApproved = "upload-approved";
     }
 }

@@ -6,13 +6,12 @@ using Fhi.Smittestopp.Verification.Domain.AnonymousTokens;
 using Fhi.Smittestopp.Verification.Domain.Constants;
 using Fhi.Smittestopp.Verification.Domain.Interfaces;
 using Fhi.Smittestopp.Verification.Domain.Models;
-using Fhi.Smittestopp.Verification.Domain.Users;
 using Fhi.Smittestopp.Verification.Domain.Verifications;
 using Fhi.Smittestopp.Verification.Server.Account;
+using Fhi.Smittestopp.Verification.Tests.TestUtils;
 using FluentAssertions;
 using IdentityServer4.Models;
 using MediatR;
-using Microsoft.Extensions.Options;
 using Moq;
 using Moq.AutoMock;
 using NUnit.Framework;
@@ -50,9 +49,9 @@ namespace Fhi.Smittestopp.Verification.Tests.Server.Account
                     PositiveTestDate = DateTime.Today.AddDays(-1).Some()
                 }, new VerificationRecord[0], verificationLimit.Object));
             automocker
-                .Setup<IOptions<AnonymousTokensConfig>, AnonymousTokensConfig>(x => x.Value)
-                .Returns(new AnonymousTokensConfig
+                .SetupOptions(new AnonymousTokensConfig
                 {
+                    Enabled = false
                 });
 
             var context = new ProfileDataRequestContext
@@ -84,9 +83,10 @@ namespace Fhi.Smittestopp.Verification.Tests.Server.Account
                 .Setup<IMediator, Task<VerificationResult>>(x => x.Send(It.IsAny<VerifyPinUser.Command>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(new VerificationResult(new PositiveTestResult(), new VerificationRecord[0], verificationLimit.Object));
             automocker
-                .Setup<IOptions<AnonymousTokensConfig>, AnonymousTokensConfig>(x => x.Value)
-                .Returns(new AnonymousTokensConfig
+                .SetupOptions(new AnonymousTokensConfig
                 {
+                    Enabled = true,
+                    EnabledClientFlags = new []{"some-flag", "some-other-flag"}
                 });
 
             var context = new ProfileDataRequestContext
@@ -104,6 +104,37 @@ namespace Fhi.Smittestopp.Verification.Tests.Server.Account
             await target.GetProfileDataAsync(context);
 
             context.IssuedClaims.Should().Contain(x => x.Type == DkSmittestopClaims.Covid19Status && x.Value == DkSmittestopClaims.StatusValues.Positive);
+            automocker.VerifyAll();
+        }
+
+        [Test]
+        public async Task GetProfileDataAsync_AnonymouTokensEnabled_IncludesAnonTokenClaims()
+        {
+            var automocker = new AutoMocker();
+
+            automocker
+                .SetupOptions(new AnonymousTokensConfig
+                {
+                    Enabled = true,
+                    EnabledClientFlags = new[] { "some-flag", "some-other-flag" }
+                });
+
+            var context = new ProfileDataRequestContext
+            {
+                Subject = new ClaimsPrincipal(new ClaimsIdentity(new[]
+                {
+                    new Claim(InternalClaims.NationalIdentifier, "01019098765"),
+                    new Claim(InternalClaims.Pseudonym, "pseudo-1")
+                })),
+                RequestedClaimTypes = new[] { VerificationClaims.AnonymousToken }
+            };
+
+            var target = automocker.CreateInstance<ProfileService>();
+
+            await target.GetProfileDataAsync(context);
+
+            context.IssuedClaims.Should().Contain(x => x.Type == VerificationClaims.AnonymousToken && x.Value == "some-flag");
+            context.IssuedClaims.Should().Contain(x => x.Type == VerificationClaims.AnonymousToken && x.Value == "some-other-flag");
             automocker.VerifyAll();
         }
     }

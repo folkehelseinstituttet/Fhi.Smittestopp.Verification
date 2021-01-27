@@ -56,7 +56,7 @@ namespace Fhi.Smittestopp.Verification.Server
                 {
                     JwtClaimTypes.Role,
                     VerificationClaims.VerifiedPositiveTestDate,
-                    VerificationClaims.AnonymousTokenAvailable
+                    VerificationClaims.AnonymousToken
                 })
             };
 
@@ -80,7 +80,8 @@ namespace Fhi.Smittestopp.Verification.Server
                         DkSmittestopClaims.Covid19InfectionEnd,
                         DkSmittestopClaims.Covid19LimitCount,
                         DkSmittestopClaims.Covid19LimitDuration,
-                        VerificationClaims.AnonymousTokenAvailable
+                        VerificationClaims.AnonymousToken,
+                        JwtClaimTypes.Role
                     }
                 }
             };

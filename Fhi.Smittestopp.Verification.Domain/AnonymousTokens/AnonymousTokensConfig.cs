@@ -10,5 +10,6 @@ namespace Fhi.Smittestopp.Verification.Domain.AnonymousTokens
         public bool KeyRotationEnabled { get; set; }
         public TimeSpan KeyRotationInterval { get; set; } = TimeSpan.FromDays(3);
         public TimeSpan KeyRotationRollover { get; set; } = TimeSpan.FromHours(1);
+        public string[] EnabledClientFlags { get; set; } = new string[0];
     }
 }

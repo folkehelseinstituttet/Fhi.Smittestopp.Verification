@@ -3,11 +3,6 @@
     public static class VerificationClaims
     {
         public const string VerifiedPositiveTestDate = "vptd";
-        public const string AnonymousTokenAvailable = "covid19_at_available";
-
-        public class AnonymousTokenAvailableValues
-        {
-            public const string IsAvailable = "true";
-        }
+        public const string AnonymousToken = "covid19_anonymous_token";
     }
 }

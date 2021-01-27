@@ -135,7 +135,36 @@ namespace Fhi.Smittestopp.Verification.Tests.Server.Account
 
             context.IssuedClaims.Should().Contain(x => x.Type == VerificationClaims.AnonymousToken && x.Value == "some-flag");
             context.IssuedClaims.Should().Contain(x => x.Type == VerificationClaims.AnonymousToken && x.Value == "some-other-flag");
-            automocker.VerifyAll();
+        }
+
+
+        [Test]
+        public async Task GetProfileDataAsync_AnonymouTokensDisabled_DoesNotIncludeAnonymousTokenClaims()
+        {
+            var automocker = new AutoMocker();
+
+            automocker
+                .SetupOptions(new AnonymousTokensConfig
+                {
+                    Enabled = false,
+                    EnabledClientFlags = new [] {"should-not-be-returned"}
+                });
+
+            var context = new ProfileDataRequestContext
+            {
+                Subject = new ClaimsPrincipal(new ClaimsIdentity(new[]
+                {
+                    new Claim(InternalClaims.NationalIdentifier, "01019098765"),
+                    new Claim(InternalClaims.Pseudonym, "pseudo-1")
+                })),
+                RequestedClaimTypes = new[] { VerificationClaims.AnonymousToken }
+            };
+
+            var target = automocker.CreateInstance<ProfileService>();
+
+            await target.GetProfileDataAsync(context);
+
+            context.IssuedClaims.Should().NotContain(x => x.Type == VerificationClaims.AnonymousToken);
         }
     }
 }

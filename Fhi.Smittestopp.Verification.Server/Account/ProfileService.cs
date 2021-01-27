@@ -21,8 +21,7 @@ namespace Fhi.Smittestopp.Verification.Server.Account
     {
         private readonly IMediator _mediator;
         private readonly ILogger<ProfileService> _logger;
-        private readonly AnonymousTokensConfig _anonymousTokensConfig
-            ;
+        private readonly AnonymousTokensConfig _anonymousTokensConfig;
 
         public ProfileService(IMediator mediator, ILogger<ProfileService> logger, IOptions<AnonymousTokensConfig> anonymousTokensConfig)
         {

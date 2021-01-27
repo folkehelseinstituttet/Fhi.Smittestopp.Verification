@@ -1,5 +1,4 @@
 ﻿using AnonymousTokens.Client.Protocol;
-using AnonymousTokens.Core.Services;
 using AnonymousTokens.Core.Services.InMemory;
 using AnonymousTokens.Server.Protocol;
 
@@ -19,7 +18,6 @@ using NUnit.Framework;
 using Optional.Unsafe;
 
 using Org.BouncyCastle.Crypto.EC;
-using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Math;
 
 using System;
@@ -165,7 +163,7 @@ namespace Fhi.Smittestopp.Verification.Tests.Domain.AnonymousTokens
                 result.HasValue.Should().BeTrue();
                 var anonymousTokenResponse = result.ValueOrFailure();
 
-                anonymousTokenResponse.Should().NotBeNull();
+                anonymousTokenResponse.Kid.Should().Be("some-kid-123");
 
                 var Q = ecParameters.Curve.DecodePoint(Convert.FromBase64String(anonymousTokenResponse.SignedPoint));
                 var c = new BigInteger(Convert.FromBase64String(anonymousTokenResponse.ProofChallenge));

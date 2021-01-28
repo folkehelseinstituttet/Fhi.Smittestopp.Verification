@@ -21,8 +21,7 @@ namespace Fhi.Smittestopp.Verification.Server.Account
     {
         private readonly IMediator _mediator;
         private readonly ILogger<ProfileService> _logger;
-        private readonly AnonymousTokensConfig _anonymousTokensConfig
-            ;
+        private readonly AnonymousTokensConfig _anonymousTokensConfig;
 
         public ProfileService(IMediator mediator, ILogger<ProfileService> logger, IOptions<AnonymousTokensConfig> anonymousTokensConfig)
         {
@@ -47,19 +46,19 @@ namespace Fhi.Smittestopp.Verification.Server.Account
 
         public async Task<IEnumerable<Claim>> GetCustomClaims(ClaimsPrincipal subject, IEnumerable<string> requestedClaims)
         {
-            var originalClaims = subject.Claims.ToList();
-
-            var pseudonym = originalClaims
-                .FirstOrNone(x => x.Type == InternalClaims.Pseudonym)
-                .Map(x => x.Value)
-                .ValueOr(subject.Identity.Name);
-
-            var nationalIdentifierClaim = originalClaims.FirstOrNone(x => x.Type == InternalClaims.NationalIdentifier);
-
-            var verificationClaims = new List<Claim>();
-            if (VerificationResult.RequestedClaimsRequiresVerification(requestedClaims))
+            try
             {
-                try
+                var originalClaims = subject.Claims.ToList();
+
+                var pseudonym = originalClaims
+                    .FirstOrNone(x => x.Type == InternalClaims.Pseudonym)
+                    .Map(x => x.Value)
+                    .ValueOr(subject.Identity.Name);
+
+                var nationalIdentifierClaim = originalClaims.FirstOrNone(x => x.Type == InternalClaims.NationalIdentifier);
+
+                var customClaims = new List<Claim>();
+                if (VerificationResult.RequestedClaimsRequiresVerification(requestedClaims))
                 {
                     var verificationResult = await nationalIdentifierClaim.MatchAsync(
                         none: async () =>
@@ -72,20 +71,24 @@ namespace Fhi.Smittestopp.Verification.Server.Account
                             return isPinVerified
                                 ? await _mediator.Send(new VerifyPinUser.Command(pseudonym))
                                 : new VerificationResult();
-
                         },
                         some: natIdent => _mediator.Send(new VerifyIdentifiedUser.Command(natIdent.Value, pseudonym)));
 
-                    verificationClaims.AddRange(verificationResult.GetVerificationClaims(_anonymousTokensConfig.Enabled));
+                    customClaims.AddRange(verificationResult.GetVerificationClaims());
                 }
-                catch (Exception e)
+
+                if (_anonymousTokensConfig.Enabled)
                 {
-                    _logger.LogError(e, "Error encountered when attempting to verify user infection status");
-                    verificationClaims.Add(new Claim(DkSmittestopClaims.Covid19Status, DkSmittestopClaims.StatusValues.Unknwon));
+                    customClaims.AddRange(_anonymousTokensConfig.EnabledClientFlags.Select(clientFlag =>
+                        new Claim(VerificationClaims.AnonymousToken, clientFlag)));
                 }
+                return customClaims;
             }
-;
-            return verificationClaims;
+            catch (Exception e)
+            {
+                _logger.LogError(e, "Error encountered when attempting to verify user infection status");
+                return new []{new Claim(DkSmittestopClaims.Covid19Status, DkSmittestopClaims.StatusValues.Unknwon)};
+            }
         }
     }
 }

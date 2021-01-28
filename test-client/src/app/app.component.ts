@@ -33,6 +33,9 @@ export class AppComponent {
         console.debug('state', this.oauthService.state);
         this.oauthService.loadUserProfile();
       });
+
+    // remove this line to allow selecting init mode
+    this.initDkCompatibleMode();
   }
 
   initDefaultMode() {
@@ -71,7 +74,7 @@ export class AppComponent {
     this.anonymousTokenError = null;
 
     var tokenRequest = {
-      pAsHex: "0441d6f9552b03d9faf1a079b73f3d658f00879c5d3ceb3b49a4355defa6c70d280e285449c19ba3fe251e6d25d76d14c154d437ab21d42c06f6ceed548276b1ac"
+      maskedPoint: "BEHW+VUrA9n68aB5tz89ZY8Ah5xdPOs7SaQ1Xe+mxw0oDihUScGbo/4lHm0l120UwVTUN6sh1CwG9s7tVIJ2saw="
     };
     
     try {

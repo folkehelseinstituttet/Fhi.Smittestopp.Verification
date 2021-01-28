@@ -14,13 +14,12 @@ namespace Fhi.Smittestopp.Verification.Domain.Models
         private static readonly string[] PossibleVerificationClaims =
         {
             JwtClaimTypes.Role,
+            VerificationClaims.VerifiedPositiveTestDate,
             DkSmittestopClaims.Covid19Status,
             DkSmittestopClaims.Covid19InfectionStart,
             DkSmittestopClaims.Covid19Blocked,
             DkSmittestopClaims.Covid19LimitDuration,
-            DkSmittestopClaims.Covid19LimitCount,
-            VerificationClaims.VerifiedPositiveTestDate,
-            VerificationClaims.AnonymousToken
+            DkSmittestopClaims.Covid19LimitCount
         };
 
         private Option<PositiveTestResult> _testresult;
@@ -49,46 +48,44 @@ namespace Fhi.Smittestopp.Verification.Domain.Models
 
         public bool HasVerifiedPostiveTest => _testresult.HasValue;
         public bool VerificationLimitExceeded { get; }
+        public bool CanUploadKeys => HasVerifiedPostiveTest && !VerificationLimitExceeded;
         public Option<IVerificationLimitConfig> VerificationLimitConfig { get; }
         public Option<DateTime> PositiveTestDate => _testresult.FlatMap(x => x.PositiveTestDate);
 
-        public IEnumerable<Claim> GetVerificationClaims(bool enableAnonymousTokens)
+        public IEnumerable<Claim> GetVerificationClaims()
         {
-            var claims = new List<Claim>();
+            var claims = new List<Claim>
+            {
+                new Claim(DkSmittestopClaims.Covid19Status, HasVerifiedPostiveTest
+                    ? DkSmittestopClaims.StatusValues.Positive
+                    : DkSmittestopClaims.StatusValues.Negative)
+            };
+
+            PositiveTestDate.Map(testDate => testDate.ToString("yyyy-MM-dd")).MatchSome(isoTestDate =>
+            {
+                claims.Add(new Claim(VerificationClaims.VerifiedPositiveTestDate, isoTestDate));
+                claims.Add(new Claim(DkSmittestopClaims.Covid19InfectionStart, isoTestDate));
+            });
 
             if (HasVerifiedPostiveTest)
             {
-                claims.Add(new Claim(JwtClaimTypes.Role, VerificationRoles.VerifiedPositive));
-
-                claims.Add(new Claim(DkSmittestopClaims.Covid19Status, DkSmittestopClaims.StatusValues.Positive));
+                // Blocking claims is only relevant for positive users
                 claims.Add(new Claim(DkSmittestopClaims.Covid19Blocked, VerificationLimitExceeded.ToString().ToLowerInvariant()));
-
-                if (enableAnonymousTokens && !VerificationLimitExceeded)
+                if (VerificationLimitExceeded)
                 {
-                    claims.Add(new Claim(VerificationClaims.AnonymousToken, VerificationClaims.AnonymousTokenValues.Available));
+                    VerificationLimitConfig.MatchSome(verLimCfg =>
+                    {
+                        claims.Add(new Claim(DkSmittestopClaims.Covid19LimitDuration, Convert.ToInt32(verLimCfg.MaxLimitDuration.TotalHours).ToString()));
+                        claims.Add(new Claim(DkSmittestopClaims.Covid19LimitCount, verLimCfg.MaxVerificationsAllowed.ToString()));
+                    });
                 }
             }
-            else
+
+            if (CanUploadKeys)
             {
-                claims.Add(new Claim(DkSmittestopClaims.Covid19Status, DkSmittestopClaims.StatusValues.Negative));
+                // grants access to JWT to anonymous token exchange
+                claims.Add(new Claim(JwtClaimTypes.Role, VerificationRoles.UploadApproved));
             }
-
-            if (VerificationLimitExceeded)
-            {
-                claims.Add(new Claim(DkSmittestopClaims.Covid19Blocked, VerificationLimitExceeded.ToString().ToLowerInvariant()));
-
-                VerificationLimitConfig.MatchSome(verLimCfg =>
-                {
-                    claims.Add(new Claim(DkSmittestopClaims.Covid19LimitDuration, Convert.ToInt32(verLimCfg.MaxLimitDuration.TotalHours).ToString()));
-                    claims.Add(new Claim(DkSmittestopClaims.Covid19LimitCount, verLimCfg.MaxVerificationsAllowed.ToString()));
-                });
-            }
-
-            PositiveTestDate.Map(testDate => testDate.ToString("yyyy-MM-dd")).MatchSome(isoTestData =>
-            {
-                claims.Add(new Claim(VerificationClaims.VerifiedPositiveTestDate, isoTestData));
-                claims.Add(new Claim(DkSmittestopClaims.Covid19InfectionStart, isoTestData));
-            });
 
             return claims;
         }

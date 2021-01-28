@@ -7,7 +7,7 @@ using Fhi.Smittestopp.Verification.Persistence;
 using Fhi.Smittestopp.Verification.Server.Account;
 using Fhi.Smittestopp.Verification.Server.Authentication;
 using Fhi.Smittestopp.Verification.Server.ExternalController;
-
+using IdentityModel;
 using IdentityServer4.EntityFramework.DbContexts;
 
 using MediatR;
@@ -99,7 +99,7 @@ namespace Fhi.Smittestopp.Verification.Server
             {
                 opt.AddPolicy(AuthPolicies.AnonymousTokens, p => p
                     .AddAuthenticationSchemes(IdentityServerSelfAuthScheme.Scheme)
-                    .RequireClaim(VerificationClaims.AnonymousToken, VerificationClaims.AnonymousTokenValues.Available));
+                    .RequireClaim(JwtClaimTypes.Role, VerificationRoles.UploadApproved));
             });
 
             services.AddTransient<IAuthenticationHandler, IdentityServerSelfAuthScheme.AuthenticationHandler>();

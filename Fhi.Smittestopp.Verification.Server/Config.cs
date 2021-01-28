@@ -80,7 +80,8 @@ namespace Fhi.Smittestopp.Verification.Server
                         DkSmittestopClaims.Covid19InfectionEnd,
                         DkSmittestopClaims.Covid19LimitCount,
                         DkSmittestopClaims.Covid19LimitDuration,
-                        VerificationClaims.AnonymousToken
+                        VerificationClaims.AnonymousToken,
+                        JwtClaimTypes.Role
                     }
                 }
             };

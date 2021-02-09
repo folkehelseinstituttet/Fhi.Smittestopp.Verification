@@ -6,7 +6,6 @@
     "start": "ng serve",
     "startLocalHttp": "ng serve -c localhttp",
     "startAzDev": "ng serve -c azdev",
-    "startAzTest": "ng serve -c aztest",
     "startNhnTest": "ng serve -c nhntest",
     "startNhnQa": "ng serve -c nhnqa",
     "build": "ng build",

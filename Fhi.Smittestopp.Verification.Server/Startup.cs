@@ -126,8 +126,9 @@ namespace Fhi.Smittestopp.Verification.Server
             app.UseStaticFiles();
             app.UseRouting();
 
-            app.UseIdentityServer();
+            app.UseCookiePolicy();
 
+            app.UseIdentityServer();
             app.UseAuthentication();
             app.UseAuthorization();
             app.UseEndpoints(endpoints =>

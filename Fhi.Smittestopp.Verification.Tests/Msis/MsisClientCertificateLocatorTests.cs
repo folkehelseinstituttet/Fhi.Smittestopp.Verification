@@ -77,7 +77,7 @@ namespace Fhi.Smittestopp.Verification.Tests.Msis
                 CertId = "key-id"
             };
             var cacheKey = nameof(MsisClientCertLocator);
-            var certificate = CertUtils.GenerateTestCert();
+            var certificate = CertUtils.GenerateTestEccCert();
             object cachedResult = certificate.Some();
 
             var automocker = new AutoMocker();
@@ -104,7 +104,7 @@ namespace Fhi.Smittestopp.Verification.Tests.Msis
             };
             var cacheKey = nameof(MsisClientCertLocator);
             object emptyCachedResult = null;
-            var certificate = CertUtils.GenerateTestCert();
+            var certificate = CertUtils.GenerateTestEccCert();
 
             var automocker = new AutoMocker();
 

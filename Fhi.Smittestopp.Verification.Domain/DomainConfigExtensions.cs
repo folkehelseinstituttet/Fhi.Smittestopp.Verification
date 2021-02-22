@@ -30,7 +30,7 @@ namespace Fhi.Smittestopp.Verification.Domain
         {
             return services
                 .Configure<AnonymousTokensConfig>(config)
-                .AddTransient<IAnonymousTokenMasterKeyCertificateLocator, AnonymousTokenMasterKeyCertificateLocator>()
+                .AddTransient<IAnonymousTokenMasterKeyLoader, AnonymousTokenMasterKeyLoader>()
                 .AddTransient<IAnonymousTokensKeyStore, AnonymousTokenKeyStore>()
                 .AddSingleton<ITokenGenerator, TokenGenerator>();
         }

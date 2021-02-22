@@ -44,7 +44,7 @@ namespace Fhi.Smittestopp.Verification.Tests.Msis
                 BaseUrl = "https://msis.api.com/api/v1/"
             };
 
-            var certificate = CertUtils.GenerateTestCert();
+            var certificate = CertUtils.GenerateTestEccCert();
 
             var certLocator = new Mock<ICertificateLocator>();
 

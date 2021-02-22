@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Linq;
-using System.Security.Cryptography.X509Certificates;
 using System.Threading.Tasks;
 using AnonymousTokens.Client.Protocol;
 using AnonymousTokens.Core.Services.InMemory;
@@ -28,8 +27,9 @@ namespace Fhi.Smittestopp.Verification.Tests.Domain.AnonymousTokens
             //Arrange
             var automocker = new AutoMocker();
 
-            var testCertificate = CertUtils.GenerateTestCert();
-            object cachedResult = null;
+            var masterKey = new byte[256];
+
+            object cachedResult;
 
             automocker
                 .SetupOptions(new AnonymousTokensConfig
@@ -48,8 +48,8 @@ namespace Fhi.Smittestopp.Verification.Tests.Domain.AnonymousTokens
                 .Returns(Mock.Of<ICacheEntry>());
 
             automocker
-                .Setup<IAnonymousTokenMasterKeyCertificateLocator, Task<X509Certificate2>>(x => x.GetMasterKeyCertificate())
-                .ReturnsAsync(testCertificate);
+                .Setup<IAnonymousTokenMasterKeyLoader, Task<byte[]>>(x => x.LoadMasterKeyBytes())
+                .ReturnsAsync(masterKey);
 
             var target = automocker.CreateInstance<AnonymousTokenKeyStore>();
 
@@ -68,7 +68,8 @@ namespace Fhi.Smittestopp.Verification.Tests.Domain.AnonymousTokens
             //Arrange
             var automocker = new AutoMocker();
 
-            var testCertificate = CertUtils.GenerateTestCert();
+            var masterKey = new byte[256];
+
             object cachedResult = null;
 
             automocker
@@ -90,8 +91,8 @@ namespace Fhi.Smittestopp.Verification.Tests.Domain.AnonymousTokens
                 .Returns(Mock.Of<ICacheEntry>());
 
             automocker
-                .Setup<IAnonymousTokenMasterKeyCertificateLocator, Task<X509Certificate2>>(x => x.GetMasterKeyCertificate())
-                .ReturnsAsync(testCertificate);
+                .Setup<IAnonymousTokenMasterKeyLoader, Task<byte[]>>(x => x.LoadMasterKeyBytes())
+                .ReturnsAsync(masterKey);
 
             var target = automocker.CreateInstance<AnonymousTokenKeyStore>();
 
@@ -109,7 +110,8 @@ namespace Fhi.Smittestopp.Verification.Tests.Domain.AnonymousTokens
             //Arrange
             var automocker = new AutoMocker();
 
-            var testCertificate = CertUtils.GenerateTestCert();
+            var masterKey = new byte[256];
+
             object cachedResult = null;
 
             automocker
@@ -129,8 +131,8 @@ namespace Fhi.Smittestopp.Verification.Tests.Domain.AnonymousTokens
                 .Returns(Mock.Of<ICacheEntry>());
 
             automocker
-                .Setup<IAnonymousTokenMasterKeyCertificateLocator, Task<X509Certificate2>>(x => x.GetMasterKeyCertificate())
-                .ReturnsAsync(testCertificate);
+                .Setup<IAnonymousTokenMasterKeyLoader, Task<byte[]>>(x => x.LoadMasterKeyBytes())
+                .ReturnsAsync(masterKey);
 
             var target = automocker.CreateInstance<AnonymousTokenKeyStore>();
 
@@ -153,7 +155,8 @@ namespace Fhi.Smittestopp.Verification.Tests.Domain.AnonymousTokens
             //Arrange
             var automocker = new AutoMocker();
 
-            var testCertificate = CertUtils.GenerateTestCert();
+            var masterKey = new byte[256];
+
             object cachedResult = null;
 
             automocker
@@ -175,8 +178,8 @@ namespace Fhi.Smittestopp.Verification.Tests.Domain.AnonymousTokens
                 .Returns(Mock.Of<ICacheEntry>());
 
             automocker
-                .Setup<IAnonymousTokenMasterKeyCertificateLocator, Task<X509Certificate2>>(x => x.GetMasterKeyCertificate())
-                .ReturnsAsync(testCertificate);
+                .Setup<IAnonymousTokenMasterKeyLoader, Task<byte[]>>(x => x.LoadMasterKeyBytes())
+                .ReturnsAsync(masterKey);
 
             var target = automocker.CreateInstance<AnonymousTokenKeyStore>();
 
@@ -199,7 +202,8 @@ namespace Fhi.Smittestopp.Verification.Tests.Domain.AnonymousTokens
             //Arrange
             var automocker = new AutoMocker();
 
-            var testCertificate = CertUtils.GenerateTestCert();
+            var masterKey = new byte[256];
+
             object cachedResult = null;
 
             automocker
@@ -221,8 +225,8 @@ namespace Fhi.Smittestopp.Verification.Tests.Domain.AnonymousTokens
                 .Returns(Mock.Of<ICacheEntry>());
 
             automocker
-                .Setup<IAnonymousTokenMasterKeyCertificateLocator, Task<X509Certificate2>>(x => x.GetMasterKeyCertificate())
-                .ReturnsAsync(testCertificate);
+                .Setup<IAnonymousTokenMasterKeyLoader, Task<byte[]>>(x => x.LoadMasterKeyBytes())
+                .ReturnsAsync(masterKey);
 
             var target = automocker.CreateInstance<AnonymousTokenKeyStore>();
 

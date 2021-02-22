@@ -22,12 +22,12 @@ namespace Fhi.Smittestopp.Verification.Domain.AnonymousTokens
         private readonly IMemoryCache _cache;
 
         private readonly AnonymousTokensConfig _config;
-        private readonly IAnonymousTokenMasterKeyCertificateLocator _masterKeyCertLocator;
+        private readonly IAnonymousTokenMasterKeyLoader _masterKeyLoader;
 
-        public AnonymousTokenKeyStore(IOptions<AnonymousTokensConfig> config, IMemoryCache cache, IAnonymousTokenMasterKeyCertificateLocator masterKeyCertLocator)
+        public AnonymousTokenKeyStore(IOptions<AnonymousTokensConfig> config, IMemoryCache cache, IAnonymousTokenMasterKeyLoader masterKeyLoader)
         {
             _cache = cache;
-            _masterKeyCertLocator = masterKeyCertLocator;
+            _masterKeyLoader = masterKeyLoader;
             _config = config.Value;
         }
 
@@ -76,9 +76,9 @@ namespace Fhi.Smittestopp.Verification.Domain.AnonymousTokens
 
         private async Task<AnonymousTokenSigningKeypair> CreateKeyPairForInterval(long keyIntervalNumber)
         {
-            var masterKeyCert = await _masterKeyCertLocator.GetMasterKeyCertificate();
+            var masterKeyBytes = await _masterKeyLoader.LoadMasterKeyBytes();
             var ecParameters = CustomNamedCurves.GetByName(_config.CurveName);
-            var keyPairGenerator = new RollingKeyPairGenerator(masterKeyCert, ecParameters);
+            var keyPairGenerator = new RollingKeyPairGenerator(masterKeyBytes, ecParameters);
             var (privateKey, publicKey) = keyPairGenerator.GenerateKeyPairForInterval(keyIntervalNumber);
             return new AnonymousTokenSigningKeypair(keyIntervalNumber.ToString(), _config.CurveName, privateKey, publicKey);
         }

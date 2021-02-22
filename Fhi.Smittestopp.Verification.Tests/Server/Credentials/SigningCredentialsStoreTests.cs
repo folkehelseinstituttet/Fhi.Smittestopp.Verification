@@ -24,7 +24,7 @@ namespace Fhi.Smittestopp.Verification.Tests.Server.Credentials
         public async Task GetSigningCredentialsAsync_ResultIsCached_ReturnsCachedResult()
         {
             //Arrange
-            var cert = CertUtils.GenerateTestCert();
+            var cert = CertUtils.GenerateTestEccCert();
             var alg = SecurityAlgorithms.RsaSha256;
             var activeSigningCredentials = new SigningCredentials(new X509SecurityKey(cert), alg);
             IEnumerable<SecurityKeyInfo> enabledValidationKeys = new[]
@@ -56,7 +56,7 @@ namespace Fhi.Smittestopp.Verification.Tests.Server.Credentials
         public async Task GetSigningCredentialsAsync_ResultNotCachedConfigSigningOnly_ReturnsBasedOnCertLocator()
         {
             //Arrange
-            var cert = CertUtils.GenerateTestCert();
+            var cert = CertUtils.GenerateTestEccCert();
             object cachedResult = null;
 
             var automocker = new AutoMocker();
@@ -102,9 +102,9 @@ namespace Fhi.Smittestopp.Verification.Tests.Server.Credentials
         public async Task GetSigningCredentialsAsync_ResultNotCachedMultipleValidVersions_ReturnsFirstOlderThanRollover()
         {
             //Arrange
-            var cert1 = CertUtils.GenerateTestCert();
-            var cert2 = CertUtils.GenerateTestCert();
-            var cert3 = CertUtils.GenerateTestCert();
+            var cert1 = CertUtils.GenerateTestEccCert();
+            var cert2 = CertUtils.GenerateTestEccCert();
+            var cert3 = CertUtils.GenerateTestEccCert();
 
             var rollover = TimeSpan.FromHours(2);
             var epsilon = TimeSpan.FromSeconds(1);
@@ -164,8 +164,8 @@ namespace Fhi.Smittestopp.Verification.Tests.Server.Credentials
         public async Task GetSigningCredentialsAsync_ResultNotCachedMultipleVersionWithinRollover_ReturnsFirst()
         {
             //Arrange
-            var cert1 = CertUtils.GenerateTestCert();
-            var cert2 = CertUtils.GenerateTestCert();
+            var cert1 = CertUtils.GenerateTestEccCert();
+            var cert2 = CertUtils.GenerateTestEccCert();
 
             var rollover = TimeSpan.FromHours(2);
             object cachedResult = null;
@@ -253,10 +253,10 @@ namespace Fhi.Smittestopp.Verification.Tests.Server.Credentials
         public async Task GetValidationKeysAsync_ResultNotCachedAdditonalValidationKeys_ReturnsAllVersionsAllCerts()
         {
             //Arrange
-            var cert1 = CertUtils.GenerateTestCert();
-            var cert2 = CertUtils.GenerateTestCert();
-            var cert3 = CertUtils.GenerateTestCert();
-            var cert4 = CertUtils.GenerateTestCert();
+            var cert1 = CertUtils.GenerateTestEccCert();
+            var cert2 = CertUtils.GenerateTestEccCert();
+            var cert3 = CertUtils.GenerateTestEccCert();
+            var cert4 = CertUtils.GenerateTestEccCert();
 
             var rollover = TimeSpan.FromHours(2);
             var epsilon = TimeSpan.FromSeconds(1);

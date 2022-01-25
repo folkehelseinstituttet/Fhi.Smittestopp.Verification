@@ -19,11 +19,13 @@ namespace Fhi.Smittestopp.Verification.Domain.Verifications
         {
             public string NationalIdentifier { get; set; }
             public string Pseudonym { get; set; }
+            public bool UserHasRequestedToSkipMsisLookup { get; }
 
-            public Command(string nationalIdentifier, string pseudonym)
+            public Command(string nationalIdentifier, string pseudonym, bool userHasRequestedToSkipMsisLookup)
             {
                 NationalIdentifier = nationalIdentifier;
                 Pseudonym = pseudonym;
+                UserHasRequestedToSkipMsisLookup = userHasRequestedToSkipMsisLookup;
             }
         }
 
@@ -62,12 +64,18 @@ namespace Fhi.Smittestopp.Verification.Domain.Verifications
             public Task<VerificationResult> Handle(Command request, CancellationToken cancellationToken)
             {
                 return _config.UseFixedTestCases
-                    ? CreateTestCaseVerificationResult(request.NationalIdentifier, request.Pseudonym)
-                    : CreateRealVerificationResult(request.NationalIdentifier, request.Pseudonym);
+                    ? CreateTestCaseVerificationResult(request.NationalIdentifier, request.Pseudonym, request.UserHasRequestedToSkipMsisLookup)
+                    : CreateRealVerificationResult(request.NationalIdentifier, request.Pseudonym, request.UserHasRequestedToSkipMsisLookup);
             }
 
-            public async Task<VerificationResult> CreateRealVerificationResult(string nationalIdentifier, string pseudonym)
+            public async Task<VerificationResult> CreateRealVerificationResult(string nationalIdentifier, string pseudonym, bool userHasRequestedToSkipMsisLookup)
             {
+                if (userHasRequestedToSkipMsisLookup)
+                {
+                    var existingRecords =
+                        await _verificationRecordsRepository.RetrieveRecordsForPseudonym(pseudonym, _verificationLimit.RecordsCutoff);
+                    return await CreateNoMsisVerificationResult(pseudonym, existingRecords);
+                }
                 var positiveTest = await _msisLookupService.FindPositiveTestResult(nationalIdentifier);
 
                 return await positiveTest.MatchAsync(
@@ -83,13 +91,20 @@ namespace Fhi.Smittestopp.Verification.Domain.Verifications
             /// <summary>
             /// Medified version of CreateRealVerificationResult where behaviour can be overridden based on configuration
             /// </summary>
-            private async Task<VerificationResult> CreateTestCaseVerificationResult(string nationalIdentifier, string pseudonym)
+            private async Task<VerificationResult> CreateTestCaseVerificationResult(string nationalIdentifier, string pseudonym, bool userHasRequestedToSkipMsisLookup)
             {
                 if (_config.TestCases.TechnicalErrorUsers.Contains(nationalIdentifier))
                 {
                     throw new Exception("Provided national identifier is configured to cause technical error");
                 }
 
+                if (userHasRequestedToSkipMsisLookup)
+                {
+                    var existingRecords =
+                        await _verificationRecordsRepository.RetrieveRecordsForPseudonym(pseudonym, _verificationLimit.RecordsCutoff);
+                    return await CreateNoMsisVerificationResult(pseudonym, existingRecords);
+                }
+                
                 var positiveTest = _config.TestCases.OddEvenInfectionResults
                     ? int.TryParse(nationalIdentifier.Last().ToString(), out var lastDigit) && lastDigit % 2 == 0
                         ? new PositiveTestResult { PositiveTestDate = DateTime.Now.AddDays(-_config.TestCases.FixedDaysSincePositiveTest).Some() }.Some()
@@ -126,6 +141,19 @@ namespace Fhi.Smittestopp.Verification.Domain.Verifications
                     await _verificationRecordsRepository.SaveNewRecord(new VerificationRecord(pseudonym));
                 }
 
+                return verificationResult;
+            }
+            
+            private async Task<VerificationResult> CreateNoMsisVerificationResult(string pseudonym, IEnumerable<VerificationRecord> existingRecords)
+            {
+                _logger.LogDebug("Creating result for identified user where user requested to omit the MSIS lookup");
+                var verificationResult = new VerificationResult(existingRecords, _verificationLimit);
+
+                if (!verificationResult.VerificationLimitExceeded)
+                {
+                    // Save new record of non-limited verification
+                    await _verificationRecordsRepository.SaveNewRecord(new VerificationRecord(pseudonym));
+                }
                 return verificationResult;
             }
 

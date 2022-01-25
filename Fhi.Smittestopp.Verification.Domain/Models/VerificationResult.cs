@@ -25,6 +25,21 @@ namespace Fhi.Smittestopp.Verification.Domain.Models
         private Option<PositiveTestResult> _testresult;
 
         /// <summary>
+        /// Constructor for verifications where user requested to skip MSIS lookup
+        /// </summary>
+        /// <param name="priorVerifications"></param>
+        /// <param name="verificationLimit"></param>
+        public VerificationResult(IEnumerable<VerificationRecord> priorVerifications,
+            IVerificationLimit verificationLimit)
+        {
+            UserHasRequestedToSkipMsisLookup = true;
+            _testresult = default;
+            VerificationLimitExceeded = verificationLimit.HasReachedLimit(priorVerifications);
+            VerificationLimitConfig = verificationLimit.Config.Some();
+
+        }
+        
+        /// <summary>
         /// Constructor for positive verifications
         /// </summary>
         public VerificationResult(PositiveTestResult testresult,
@@ -47,8 +62,9 @@ namespace Fhi.Smittestopp.Verification.Domain.Models
         }
 
         public bool HasVerifiedPostiveTest => _testresult.HasValue;
+        public bool UserHasRequestedToSkipMsisLookup { get; }
         public bool VerificationLimitExceeded { get; }
-        public bool CanUploadKeys => HasVerifiedPostiveTest && !VerificationLimitExceeded;
+        public bool CanUploadKeys => (HasVerifiedPostiveTest || UserHasRequestedToSkipMsisLookup) && !VerificationLimitExceeded;
         public Option<IVerificationLimitConfig> VerificationLimitConfig { get; }
         public Option<DateTime> PositiveTestDate => _testresult.FlatMap(x => x.PositiveTestDate);
 
@@ -67,9 +83,9 @@ namespace Fhi.Smittestopp.Verification.Domain.Models
                 claims.Add(new Claim(DkSmittestopClaims.Covid19InfectionStart, isoTestDate));
             });
 
-            if (HasVerifiedPostiveTest)
+            if (HasVerifiedPostiveTest || UserHasRequestedToSkipMsisLookup)
             {
-                // Blocking claims is only relevant for positive users
+                // Blocking claims is only relevant for positive users and users who requested to skip MSIS lookup
                 claims.Add(new Claim(DkSmittestopClaims.Covid19Blocked, VerificationLimitExceeded.ToString().ToLowerInvariant()));
                 if (VerificationLimitExceeded)
                 {
@@ -81,6 +97,11 @@ namespace Fhi.Smittestopp.Verification.Domain.Models
                 }
             }
 
+            if (UserHasRequestedToSkipMsisLookup)
+            {
+                claims.Add(new Claim(VerificationClaims.DoNotPerformMsisLookup, "true"));
+            }
+            
             if (CanUploadKeys)
             {
                 // grants access to JWT to anonymous token exchange

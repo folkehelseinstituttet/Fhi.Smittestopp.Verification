@@ -72,11 +72,11 @@ namespace Fhi.Smittestopp.Verification.Server
                         JwtClaimTypes.Role
                     }
                 },
-                new ApiScope(VerificationScopes.DoNotPerformMsisLookup, "Do not perform MSIS lookup")
+                new ApiScope(VerificationScopes.SkipMsisLookup, "Skip (do not perform) MSIS lookup")
                 {
                     UserClaims = new []
                     {
-                        VerificationClaims.DoNotPerformMsisLookup
+                        VerificationClaims.SkipMsisLookup
                     }
                 },
                 new ApiScope(VerificationScopes.DkSmittestop, "Diagnosis keys upload API")

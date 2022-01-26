@@ -34,7 +34,7 @@ namespace Fhi.Smittestopp.Verification.Server.Account
         public async Task GetProfileDataAsync(ProfileDataRequestContext context)
         {
             _logger.LogDebug("Retrieving claims for request: {requestedClaims}", context.RequestedClaimTypes);
-            context.AddRequestedClaims(await GetCustomClaims(context.Subject, context.RequestedClaimTypes, context.RequestedResources.ParsedScopes));
+            context.AddRequestedClaims(await GetCustomClaims(context.Subject, context.RequestedClaimTypes, context.RequestedResources?.ParsedScopes ?? new List<ParsedScopeValue>()));
             _logger.LogDebug("Issued claims: {issuedClaims}", context.IssuedClaims.Select(c => c.Type).ToList());
         }
 
@@ -47,7 +47,7 @@ namespace Fhi.Smittestopp.Verification.Server.Account
 
         public async Task<IEnumerable<Claim>> GetCustomClaims(ClaimsPrincipal subject, IEnumerable<string> requestedClaims, IEnumerable<ParsedScopeValue> parsedScopes)
         {
-            bool userHasRequestedToSkipMsisLookup = parsedScopes.Select(p => p.ParsedName).Contains(VerificationScopes.DoNotPerformMsisLookup);
+            bool skipMsisLookup = parsedScopes?.Select(p => p.ParsedName.ToLower()).Contains(VerificationScopes.SkipMsisLookup) == true;
             
             try
             {
@@ -70,12 +70,9 @@ namespace Fhi.Smittestopp.Verification.Server.Account
                                 .FirstOrNone(x => x.Type == InternalClaims.PinVerified)
                                 .Map(x => x.Value == "true")
                                 .ValueOr(false);
-
-                            return isPinVerified
-                                ? await _mediator.Send(new VerifyPinUser.Command(pseudonym))
-                                : new VerificationResult();
+                            return await _mediator.Send(new VerifyPinUser.Command(pseudonym, isPinVerified, skipMsisLookup));
                         },
-                        some: natIdent => _mediator.Send(new VerifyIdentifiedUser.Command(natIdent.Value, pseudonym, userHasRequestedToSkipMsisLookup)));
+                        some: natIdent => _mediator.Send(new VerifyIdentifiedUser.Command(natIdent.Value, pseudonym, skipMsisLookup)));
 
                     customClaims.AddRange(verificationResult.GetVerificationClaims());
                 }

@@ -25,14 +25,14 @@ namespace Fhi.Smittestopp.Verification.Domain.Models
         private Option<PositiveTestResult> _testresult;
 
         /// <summary>
-        /// Constructor for verifications where user requested to skip MSIS lookup
+        /// Constructor for negative verifications and verifications skipping MSIS lookup
         /// </summary>
         /// <param name="priorVerifications"></param>
         /// <param name="verificationLimit"></param>
         public VerificationResult(IEnumerable<VerificationRecord> priorVerifications,
-            IVerificationLimit verificationLimit)
+            IVerificationLimit verificationLimit, bool skipMsisLookup)
         {
-            UserHasRequestedToSkipMsisLookup = true;
+            SkipMsisLookup = skipMsisLookup;
             _testresult = default;
             VerificationLimitExceeded = verificationLimit.HasReachedLimit(priorVerifications);
             VerificationLimitConfig = verificationLimit.Config.Some();
@@ -51,20 +51,10 @@ namespace Fhi.Smittestopp.Verification.Domain.Models
             VerificationLimitConfig = verificationLimit.Config.Some();
         }
 
-        /// <summary>
-        /// Constructor for negative verifications
-        /// </summary>
-        public VerificationResult()
-        {
-            _testresult = default;
-            VerificationLimitConfig = default;
-            VerificationLimitExceeded = false;
-        }
-
         public bool HasVerifiedPostiveTest => _testresult.HasValue;
-        public bool UserHasRequestedToSkipMsisLookup { get; }
+        public bool SkipMsisLookup { get; }
         public bool VerificationLimitExceeded { get; }
-        public bool CanUploadKeys => (HasVerifiedPostiveTest || UserHasRequestedToSkipMsisLookup) && !VerificationLimitExceeded;
+        public bool CanUploadKeys => !VerificationLimitExceeded;
         public Option<IVerificationLimitConfig> VerificationLimitConfig { get; }
         public Option<DateTime> PositiveTestDate => _testresult.FlatMap(x => x.PositiveTestDate);
 
@@ -83,23 +73,20 @@ namespace Fhi.Smittestopp.Verification.Domain.Models
                 claims.Add(new Claim(DkSmittestopClaims.Covid19InfectionStart, isoTestDate));
             });
 
-            if (HasVerifiedPostiveTest || UserHasRequestedToSkipMsisLookup)
+        
+            claims.Add(new Claim(DkSmittestopClaims.Covid19Blocked, VerificationLimitExceeded.ToString().ToLowerInvariant()));
+            if (VerificationLimitExceeded)
             {
-                // Blocking claims is only relevant for positive users and users who requested to skip MSIS lookup
-                claims.Add(new Claim(DkSmittestopClaims.Covid19Blocked, VerificationLimitExceeded.ToString().ToLowerInvariant()));
-                if (VerificationLimitExceeded)
+                VerificationLimitConfig.MatchSome(verLimCfg =>
                 {
-                    VerificationLimitConfig.MatchSome(verLimCfg =>
-                    {
-                        claims.Add(new Claim(DkSmittestopClaims.Covid19LimitDuration, Convert.ToInt32(verLimCfg.MaxLimitDuration.TotalHours).ToString()));
-                        claims.Add(new Claim(DkSmittestopClaims.Covid19LimitCount, verLimCfg.MaxVerificationsAllowed.ToString()));
-                    });
-                }
+                    claims.Add(new Claim(DkSmittestopClaims.Covid19LimitDuration, Convert.ToInt32(verLimCfg.MaxLimitDuration.TotalHours).ToString()));
+                    claims.Add(new Claim(DkSmittestopClaims.Covid19LimitCount, verLimCfg.MaxVerificationsAllowed.ToString()));
+                });
             }
 
-            if (UserHasRequestedToSkipMsisLookup)
+            if (SkipMsisLookup)
             {
-                claims.Add(new Claim(VerificationClaims.DoNotPerformMsisLookup, "true"));
+                claims.Add(new Claim(VerificationClaims.SkipMsisLookup, "true"));
             }
             
             if (CanUploadKeys)

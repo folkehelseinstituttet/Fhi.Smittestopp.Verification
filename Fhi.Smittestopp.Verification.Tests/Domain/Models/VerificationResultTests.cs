@@ -6,6 +6,7 @@ using Fhi.Smittestopp.Verification.Domain.Interfaces;
 using Fhi.Smittestopp.Verification.Domain.Models;
 using FluentAssertions;
 using IdentityModel;
+using Microsoft.Extensions.Options;
 using Moq;
 using NUnit.Framework;
 using Optional;
@@ -18,28 +19,67 @@ namespace Fhi.Smittestopp.Verification.Tests.Domain.Models
         [Test]
         public void HasVerifiedPostiveTest_ForNegativeResult_ShouldContainNegativeClaim()
         {
-            var target = new VerificationResult();
+            var target = new VerificationResult(new List<VerificationRecord>(), Mock.Of<IVerificationLimit>(),false);
 
             target.HasVerifiedPostiveTest.Should().BeFalse();
         }
 
         [Test]
-        public void CanUploadKeys_ForNegativeResult_ShouldContainNegativeClaim()
+        public void CanUploadKeys_ForNegativeResult_ShouldContainPositiveClaim()
         {
-            var target = new VerificationResult();
+            var target = new VerificationResult(new List<VerificationRecord>(), Mock.Of<IVerificationLimit>(),false);
+
+            target.CanUploadKeys.Should().BeTrue();
+        }
+        
+        [Test]
+        public void CanUploadKeys_ForResultWhereMsisLookupWasSkipped_AndWithinVerificationThreshold_ShouldContainPositiveClaim()
+        {
+            var target = new VerificationResult(new List<VerificationRecord>(), Mock.Of<IVerificationLimit>(),skipMsisLookup: true);
+
+            target.CanUploadKeys.Should().BeTrue();
+        }
+        
+        [Test]
+        public void CanUploadKeys_ForResultWhereMsisLookupWasSkipped_AndVerificationLimitWasReached_ShouldBeFalse()
+        {
+            var verificationLimitMock = new Mock<IVerificationLimit>();
+
+            verificationLimitMock
+                .Setup(x => x.HasReachedLimit(It.IsAny<IEnumerable<VerificationRecord>>()))
+                .Returns(true);
+
+            var target = new VerificationResult(new List<VerificationRecord>(), verificationLimitMock.Object,skipMsisLookup: true);
+
+            target.CanUploadKeys.Should().BeFalse();
+        }
+        
+        [Test]
+        public void CanUploadKeys_ForNegativeResult_AndVerificationLimitWasReached_ShouldBeFalse()
+        {
+            var verificationLimitMock = new Mock<IVerificationLimit>();
+
+            verificationLimitMock
+                .Setup(x => x.HasReachedLimit(It.IsAny<IEnumerable<VerificationRecord>>()))
+                .Returns(true);
+
+            var target = new VerificationResult(new List<VerificationRecord>(), verificationLimitMock.Object, false);
 
             target.CanUploadKeys.Should().BeFalse();
         }
 
+
         [Test]
-        public void GetVerificationClaims_ForNegativeResult_ShouldContainNegativeClaim()
+        public void GetVerificationClaims_ForNegativeResult_ShouldContainUploadClaim()
         {
-            var target = new VerificationResult();
+            
+            var target = new VerificationResult(new List<VerificationRecord>(), Mock.Of<IVerificationLimit>(), false);
 
             var verificationClaims = target.GetVerificationClaims().ToList();
 
             verificationClaims.Should().Contain(c => c.Type == DkSmittestopClaims.Covid19Status && c.Value == DkSmittestopClaims.StatusValues.Negative);
-            verificationClaims.Should().NotContain(c => c.Type == JwtClaimTypes.Role);
+            verificationClaims.Should().Contain(c => c.Type == JwtClaimTypes.Role && c.Value == VerificationRoles.UploadApproved);
+            
         }
 
         [Test]

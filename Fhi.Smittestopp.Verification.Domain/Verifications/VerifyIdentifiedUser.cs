@@ -86,7 +86,7 @@ namespace Fhi.Smittestopp.Verification.Domain.Verifications
             /// <summary>
             /// Medified version of CreateRealVerificationResult where behaviour can be overridden based on configuration
             /// </summary>
-            private async Task<VerificationResult> CreateTestCaseVerificationResult(string nationalIdentifier, string pseudonym, bool userHasRequestedToSkipMsisLookup)
+            private async Task<VerificationResult> CreateTestCaseVerificationResult(string nationalIdentifier, string pseudonym, bool skipMsisLookup)
             {
                 if (_config.TestCases.TechnicalErrorUsers.Contains(nationalIdentifier))
                 {
@@ -97,7 +97,7 @@ namespace Fhi.Smittestopp.Verification.Domain.Verifications
                     ? Enumerable.Empty<VerificationRecord>()
                     : await _verificationRecordsRepository.RetrieveRecordsForPseudonym(pseudonym, _verificationLimit.RecordsCutoff);
                 
-                if (userHasRequestedToSkipMsisLookup)
+                if (skipMsisLookup)
                 {
                     return await CreateNoMsisVerificationResult(pseudonym, existingRecords);
                 }
@@ -135,7 +135,7 @@ namespace Fhi.Smittestopp.Verification.Domain.Verifications
             private async Task<VerificationResult> CreateNoMsisVerificationResult(string pseudonym, IEnumerable<VerificationRecord> existingRecords)
             {
                 _logger.LogDebug("Creating result for identified user where user requested to skip the MSIS lookup");
-                var verificationResult = new VerificationResult(existingRecords, _verificationLimit, true);
+                var verificationResult = new VerificationResult(existingRecords, _verificationLimit, skipMsisLookup: true);
 
                 await SaveNewRecordIfWithinVerificationLimit(pseudonym, verificationResult);
                 return verificationResult;
@@ -144,7 +144,7 @@ namespace Fhi.Smittestopp.Verification.Domain.Verifications
             private async Task<VerificationResult> CreateNonPositiveResult(string pseudonym, IEnumerable<VerificationRecord> existingRecords)
             {
                 _logger.LogDebug("Creating non-positive verification result for identified user");
-                var verificationResult = new VerificationResult(existingRecords, _verificationLimit, false);
+                var verificationResult = new VerificationResult(existingRecords, _verificationLimit, skipMsisLookup: false);
                 await SaveNewRecordIfWithinVerificationLimit(pseudonym, verificationResult);
 
                 return verificationResult;

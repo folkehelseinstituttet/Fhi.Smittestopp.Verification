@@ -27,5 +27,6 @@ namespace Fhi.Smittestopp.Verification.Domain.Models
     {
         public int MaxVerificationsAllowed { get; set; } = 3;
         public TimeSpan MaxLimitDuration { get; set; } = TimeSpan.FromDays(1);
+        public int MinimumAgeInYears { get; set; } = 16;
     }
 }

@@ -5,7 +5,9 @@ using System.Security.Claims;
 using System.Threading.Tasks;
 using Fhi.Smittestopp.Verification.Domain.AnonymousTokens;
 using Fhi.Smittestopp.Verification.Domain.Constants;
+using Fhi.Smittestopp.Verification.Domain.Interfaces;
 using Fhi.Smittestopp.Verification.Domain.Models;
+using Fhi.Smittestopp.Verification.Domain.Utilities.NationalIdentifiers;
 using Fhi.Smittestopp.Verification.Domain.Verifications;
 using IdentityServer4.Models;
 using IdentityServer4.Services;
@@ -23,11 +25,13 @@ namespace Fhi.Smittestopp.Verification.Server.Account
         private readonly IMediator _mediator;
         private readonly ILogger<ProfileService> _logger;
         private readonly AnonymousTokensConfig _anonymousTokensConfig;
+        private readonly IVerificationLimitConfig _verificationLimitConfig;
 
-        public ProfileService(IMediator mediator, ILogger<ProfileService> logger, IOptions<AnonymousTokensConfig> anonymousTokensConfig)
+        public ProfileService(IMediator mediator, ILogger<ProfileService> logger, IOptions<AnonymousTokensConfig> anonymousTokensConfig, IOptions<VerificationLimitConfig> verificationLimitConfig)
         {
             _mediator = mediator;
             _logger = logger;
+            _verificationLimitConfig = verificationLimitConfig.Value;
             _anonymousTokensConfig = anonymousTokensConfig.Value;
         }
 
@@ -38,6 +42,8 @@ namespace Fhi.Smittestopp.Verification.Server.Account
             _logger.LogDebug("Issued claims: {issuedClaims}", context.IssuedClaims.Select(c => c.Type).ToList());
         }
 
+      
+
         public Task IsActiveAsync(IsActiveContext context)
         {
             context.IsActive = true;
@@ -47,10 +53,16 @@ namespace Fhi.Smittestopp.Verification.Server.Account
 
         public async Task<IEnumerable<Claim>> GetCustomClaims(ClaimsPrincipal subject, IEnumerable<string> requestedClaims, IEnumerable<ParsedScopeValue> parsedScopes)
         {
-            bool skipMsisLookup = parsedScopes?.Select(p => p.ParsedName.ToLower()).Contains(VerificationScopes.SkipMsisLookup) == true;
-            
+            var nationalIdentifier = subject?.Claims?.FirstOrDefault(c => c.Type == InternalClaims.NationalIdentifier)?.Value;
+            if (!nationalIdentifier.CanDetermineAge() || nationalIdentifier.IsPersonYoungerThanAgeLimit(_verificationLimitConfig.MinimumAgeInYears))
+            {
+                // Return only blocking claims: Too young or can't determine age
+                return GetClaimsForBlockedPerson();
+            }
+
             try
             {
+                bool skipMsisLookup = parsedScopes?.Select(p => p.ParsedName.ToLower()).Contains(VerificationScopes.SkipMsisLookup) == true;
                 var originalClaims = subject.Claims.ToList();
 
                 var pseudonym = originalClaims
@@ -89,6 +101,17 @@ namespace Fhi.Smittestopp.Verification.Server.Account
                 _logger.LogError(e, "Error encountered when attempting to verify user infection status");
                 return new []{new Claim(DkSmittestopClaims.Covid19Status, DkSmittestopClaims.StatusValues.Unknwon)};
             }
+        }
+        private IEnumerable<Claim> GetClaimsForBlockedPerson()
+        {
+            var customClaims = new List<Claim>();
+            customClaims.AddRange(new[]
+            {
+                new Claim(DkSmittestopClaims.Covid19Blocked, "true"),
+                new Claim(DkSmittestopClaims.Covid19LimitCount, _verificationLimitConfig.MaxVerificationsAllowed.ToString()),
+                new Claim(DkSmittestopClaims.Covid19LimitDuration, _verificationLimitConfig.MaxLimitDuration.TotalHours.ToString()),
+            });
+            return customClaims;
         }
     }
 }

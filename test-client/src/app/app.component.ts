@@ -39,11 +39,17 @@ export class AppComponent {
   }
 
   initDefaultMode() {
-    this.initOauth('openid verification-info upload-api no-msis', this.forceLoginPrompt);
+    // Uncomment the following 2 lines to verify using the 'no-msis' scope
+    // this.initOauth('openid verification-info upload-api no-msis', this.forceLoginPrompt);
+    // return;
+    this.initOauth('openid verification-info upload-api', this.forceLoginPrompt);
   }
 
   initDkCompatibleMode() {
-    this.initOauth('openid smittestop no-msis', this.forceLoginPrompt);
+    // Uncomment the following lines 2 to verify using the 'no-msis' scope
+    // this.initOauth('openid smittestop no-msis', this.forceLoginPrompt);
+    // return;
+    this.initOauth('openid smittestop', this.forceLoginPrompt);
   }
 
   startLogin() {
@@ -113,4 +119,7 @@ export class AppComponent {
     });
   }
 
+  decodeAccessTokenPayload(accessToken: string) {
+    return JSON.parse(atob(accessToken.split('.')[1]))
+  }
 }

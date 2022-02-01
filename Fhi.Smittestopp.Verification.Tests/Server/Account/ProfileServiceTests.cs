@@ -110,9 +110,47 @@ namespace Fhi.Smittestopp.Verification.Tests.Server.Account
             await target.GetProfileDataAsync(context);
 
             context.IssuedClaims.Should().NotContain(x => x.Type == JwtClaimTypes.Role && x.Value == VerificationRoles.UploadApproved);
+            context.IssuedClaims.Should().Contain(x => x.Type == JwtClaimTypes.Role && x.Value == VerificationRoles.Underaged);
             context.IssuedClaims.Should().Contain(x => x.Type == DkSmittestopClaims.Covid19Blocked && x.Value == "true");
             context.IssuedClaims.Should().Contain(x => x.Type == DkSmittestopClaims.Covid19LimitCount);
             context.IssuedClaims.Should().Contain(x => x.Type == DkSmittestopClaims.Covid19LimitDuration);
+        }
+        
+        [Test]
+        public async Task GetProfileDataAsync_GivenNationalYoungerThanThreshold_GetsUnderagedClaim()
+        {
+            var automocker = new AutoMocker();
+
+            automocker
+                .SetupOptions(new AnonymousTokensConfig
+                {
+                    Enabled = true,
+                    EnabledClientFlags = new[] { "some-flag", "some-other-flag" }
+                })
+                .SetupOptions(DefaultVerificationLimitConfig);
+
+            var context = new ProfileDataRequestContext
+            {
+                Subject = new ClaimsPrincipal(new ClaimsIdentity(new[]
+                {
+                    new Claim(InternalClaims.NationalIdentifier, "01012068359"),
+                    new Claim(InternalClaims.Pseudonym, "pseudo-1")
+                })),
+                RequestedClaimTypes = new[]
+                {
+                    JwtClaimTypes.Role, 
+                    DkSmittestopClaims.Covid19Blocked,
+                    DkSmittestopClaims.Covid19Status,
+                    DkSmittestopClaims.Covid19LimitCount,
+                    DkSmittestopClaims.Covid19LimitDuration,
+                    
+                }
+            };
+
+            var target = automocker.CreateInstance<ProfileService>();
+
+            await target.GetProfileDataAsync(context);
+            context.IssuedClaims.Should().Contain(x => x.Type == JwtClaimTypes.Role && x.Value == VerificationRoles.Underaged);
         }
         
         //01012068359

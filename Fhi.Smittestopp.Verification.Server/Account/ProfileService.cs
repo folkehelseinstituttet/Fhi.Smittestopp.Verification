@@ -9,6 +9,7 @@ using Fhi.Smittestopp.Verification.Domain.Interfaces;
 using Fhi.Smittestopp.Verification.Domain.Models;
 using Fhi.Smittestopp.Verification.Domain.Utilities.NationalIdentifiers;
 using Fhi.Smittestopp.Verification.Domain.Verifications;
+using IdentityModel;
 using IdentityServer4.Models;
 using IdentityServer4.Services;
 using IdentityServer4.Validation;
@@ -56,8 +57,8 @@ namespace Fhi.Smittestopp.Verification.Server.Account
             var nationalIdentifier = subject?.Claims?.FirstOrDefault(c => c.Type == InternalClaims.NationalIdentifier)?.Value;
             if (!nationalIdentifier.CanDetermineAge() || nationalIdentifier.IsPersonYoungerThanAgeLimit(_verificationLimitConfig.MinimumAgeInYears))
             {
-                // Return only blocking claims: Too young or can't determine age
-                return GetClaimsForBlockedPerson();
+                // Return only underaged claims: Too young or can't determine age
+                return GetClaimsForUnderagedPerson();
             }
 
             try
@@ -102,7 +103,7 @@ namespace Fhi.Smittestopp.Verification.Server.Account
                 return new []{new Claim(DkSmittestopClaims.Covid19Status, DkSmittestopClaims.StatusValues.Unknwon)};
             }
         }
-        private IEnumerable<Claim> GetClaimsForBlockedPerson()
+        private IEnumerable<Claim> GetClaimsForUnderagedPerson()
         {
             var customClaims = new List<Claim>();
             customClaims.AddRange(new[]
@@ -110,6 +111,7 @@ namespace Fhi.Smittestopp.Verification.Server.Account
                 new Claim(DkSmittestopClaims.Covid19Blocked, "true"),
                 new Claim(DkSmittestopClaims.Covid19LimitCount, _verificationLimitConfig.MaxVerificationsAllowed.ToString()),
                 new Claim(DkSmittestopClaims.Covid19LimitDuration, _verificationLimitConfig.MaxLimitDuration.TotalHours.ToString()),
+                new Claim(JwtClaimTypes.Role, VerificationRoles.Underaged),
             });
             return customClaims;
         }

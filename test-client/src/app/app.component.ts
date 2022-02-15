@@ -39,10 +39,16 @@ export class AppComponent {
   }
 
   initDefaultMode() {
+    // Uncomment the following 2 lines to verify using the 'no-msis' scope
+    // this.initOauth('openid verification-info upload-api no-msis', this.forceLoginPrompt);
+    // return;
     this.initOauth('openid verification-info upload-api', this.forceLoginPrompt);
   }
 
   initDkCompatibleMode() {
+    // Uncomment the following lines 2 to verify using the 'no-msis' scope
+    // this.initOauth('openid smittestop no-msis', this.forceLoginPrompt);
+    // return;
     this.initOauth('openid smittestop', this.forceLoginPrompt);
   }
 
@@ -76,7 +82,7 @@ export class AppComponent {
     var tokenRequest = {
       maskedPoint: "BEHW+VUrA9n68aB5tz89ZY8Ah5xdPOs7SaQ1Xe+mxw0oDihUScGbo/4lHm0l120UwVTUN6sh1CwG9s7tVIJ2saw="
     };
-    
+
     try {
       var response = await this.http.post(
         environment.authIssuer + "/api/anonymoustokens",
@@ -87,7 +93,7 @@ export class AppComponent {
           }
         })
       .toPromise();
-  
+
       this.anonymousTokenResponse = response;
       return this.anonymousTokenResponse;
     } catch (e) {
@@ -112,5 +118,8 @@ export class AppComponent {
       }
     });
   }
-  
+
+  decodeAccessTokenPayload(accessToken: string) {
+    return JSON.parse(atob(accessToken.split('.')[1]))
+  }
 }

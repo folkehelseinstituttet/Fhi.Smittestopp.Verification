@@ -23,7 +23,7 @@ namespace Fhi.Smittestopp.Verification.Tests.Domain.Verifications
             
             var target = automocker.CreateInstance<VerifyPinUser.Handler>();
 
-            var result = await target.Handle(new VerifyPinUser.Command("pseudo-1"), new CancellationToken());
+            var result = await target.Handle(new VerifyPinUser.Command("pseudo-1", true, false), new CancellationToken());
 
             result.HasVerifiedPostiveTest.Should().BeTrue();
             result.PositiveTestDate.Should().Be(Option.None<DateTime>());
@@ -46,7 +46,7 @@ namespace Fhi.Smittestopp.Verification.Tests.Domain.Verifications
 
             var target = automocker.CreateInstance<VerifyPinUser.Handler>();
 
-            var result = await target.Handle(new VerifyPinUser.Command("pseudo-1"), new CancellationToken());
+            var result = await target.Handle(new VerifyPinUser.Command("pseudo-1", true, false), new CancellationToken());
 
             result.HasVerifiedPostiveTest.Should().BeTrue();
             result.VerificationLimitExceeded.Should().BeTrue();

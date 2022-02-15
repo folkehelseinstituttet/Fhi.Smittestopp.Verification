@@ -22,6 +22,11 @@
 
   <h2>Access token</h2>
   <p>{{accessToken}}</p>
+  <div *ngIf="accessToken">
+    <i>Access token payload:</i>
+    <pre>{{decodeAccessTokenPayload(accessToken) | json}}</pre>
+
+  </div>
 
   <h2>Granted scopes</h2>
   <pre>{{grantedScopes|json}}</pre>

@@ -6,5 +6,6 @@ namespace Fhi.Smittestopp.Verification.Domain.Interfaces
     {
         int MaxVerificationsAllowed { get; }
         TimeSpan MaxLimitDuration { get; }
+        int MinimumAgeInYears { get; }
     }
 }

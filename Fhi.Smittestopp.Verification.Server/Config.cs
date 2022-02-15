@@ -1,4 +1,5 @@
-﻿using IdentityServer4.Models;
+﻿using System;
+using IdentityServer4.Models;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -69,6 +70,13 @@ namespace Fhi.Smittestopp.Verification.Server
                     UserClaims = new []
                     {
                         JwtClaimTypes.Role
+                    }
+                },
+                new ApiScope(VerificationScopes.SkipMsisLookup, "Skip (do not perform) MSIS lookup")
+                {
+                    UserClaims = new []
+                    {
+                        VerificationClaims.SkipMsisLookup
                     }
                 },
                 new ApiScope(VerificationScopes.DkSmittestop, "Diagnosis keys upload API")

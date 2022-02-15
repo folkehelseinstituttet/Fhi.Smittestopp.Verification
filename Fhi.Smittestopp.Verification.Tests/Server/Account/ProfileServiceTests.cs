@@ -10,6 +10,7 @@ using Fhi.Smittestopp.Verification.Domain.Verifications;
 using Fhi.Smittestopp.Verification.Server.Account;
 using Fhi.Smittestopp.Verification.Tests.TestUtils;
 using FluentAssertions;
+using IdentityModel;
 using IdentityServer4.Models;
 using MediatR;
 using Moq;
@@ -52,13 +53,14 @@ namespace Fhi.Smittestopp.Verification.Tests.Server.Account
                 .SetupOptions(new AnonymousTokensConfig
                 {
                     Enabled = false
-                });
+                })
+                .SetupOptions(DefaultVerificationLimitConfig);
 
             var context = new ProfileDataRequestContext
             {
                 Subject = new ClaimsPrincipal(new ClaimsIdentity(new []
                 {
-                    new Claim(InternalClaims.NationalIdentifier, "01019098765"),
+                    new Claim(InternalClaims.NationalIdentifier, "08089409382"),
                     new Claim(InternalClaims.Pseudonym, "pseudo-1")
                 })),
                 RequestedClaimTypes = new []{ DkSmittestopClaims.Covid19Status }
@@ -71,23 +73,99 @@ namespace Fhi.Smittestopp.Verification.Tests.Server.Account
             context.IssuedClaims.Should().Contain(x => x.Type == DkSmittestopClaims.Covid19Status && x.Value == DkSmittestopClaims.StatusValues.Positive);
             automocker.VerifyAll();
         }
-
+        
         [Test]
-        public async Task GetProfileDataAsync_GivenPinUser_VerifiesStatusAndAddsRequestedClaim()
+        public async Task GetProfileDataAsync_GivenNationalYoungerThanThreshold_GetsBlockedAndNoUploadClaim()
         {
             var automocker = new AutoMocker();
 
-            var verificationLimit = new Mock<IVerificationLimit>();
+            automocker
+                .SetupOptions(new AnonymousTokensConfig
+                {
+                    Enabled = true,
+                    EnabledClientFlags = new[] { "some-flag", "some-other-flag" }
+                })
+                .SetupOptions(DefaultVerificationLimitConfig);
+
+            var context = new ProfileDataRequestContext
+            {
+                Subject = new ClaimsPrincipal(new ClaimsIdentity(new[]
+                {
+                    new Claim(InternalClaims.NationalIdentifier, "01012068359"),
+                    new Claim(InternalClaims.Pseudonym, "pseudo-1")
+                })),
+                RequestedClaimTypes = new[]
+                {
+                    JwtClaimTypes.Role, 
+                    DkSmittestopClaims.Covid19Blocked,
+                    DkSmittestopClaims.Covid19Status,
+                    DkSmittestopClaims.Covid19LimitCount,
+                    DkSmittestopClaims.Covid19LimitDuration,
+                    
+                }
+            };
+
+            var target = automocker.CreateInstance<ProfileService>();
+
+            await target.GetProfileDataAsync(context);
+
+            context.IssuedClaims.Should().NotContain(x => x.Type == JwtClaimTypes.Role && x.Value == VerificationRoles.UploadApproved);
+            context.IssuedClaims.Should().Contain(x => x.Type == JwtClaimTypes.Role && x.Value == VerificationRoles.Underaged);
+            context.IssuedClaims.Should().Contain(x => x.Type == DkSmittestopClaims.Covid19Blocked && x.Value == "true");
+            context.IssuedClaims.Should().Contain(x => x.Type == DkSmittestopClaims.Covid19LimitCount);
+            context.IssuedClaims.Should().Contain(x => x.Type == DkSmittestopClaims.Covid19LimitDuration);
+        }
+        
+        [Test]
+        public async Task GetProfileDataAsync_GivenNationalYoungerThanThreshold_GetsUnderagedClaim()
+        {
+            var automocker = new AutoMocker();
 
             automocker
-                .Setup<IMediator, Task<VerificationResult>>(x => x.Send(It.IsAny<VerifyPinUser.Command>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync(new VerificationResult(new PositiveTestResult(), new VerificationRecord[0], verificationLimit.Object));
+                .SetupOptions(new AnonymousTokensConfig
+                {
+                    Enabled = true,
+                    EnabledClientFlags = new[] { "some-flag", "some-other-flag" }
+                })
+                .SetupOptions(DefaultVerificationLimitConfig);
+
+            var context = new ProfileDataRequestContext
+            {
+                Subject = new ClaimsPrincipal(new ClaimsIdentity(new[]
+                {
+                    new Claim(InternalClaims.NationalIdentifier, "01012068359"),
+                    new Claim(InternalClaims.Pseudonym, "pseudo-1")
+                })),
+                RequestedClaimTypes = new[]
+                {
+                    JwtClaimTypes.Role, 
+                    DkSmittestopClaims.Covid19Blocked,
+                    DkSmittestopClaims.Covid19Status,
+                    DkSmittestopClaims.Covid19LimitCount,
+                    DkSmittestopClaims.Covid19LimitDuration,
+                    
+                }
+            };
+
+            var target = automocker.CreateInstance<ProfileService>();
+
+            await target.GetProfileDataAsync(context);
+            context.IssuedClaims.Should().Contain(x => x.Type == JwtClaimTypes.Role && x.Value == VerificationRoles.Underaged);
+        }
+        
+        //01012068359
+
+        [Test]
+        public async Task GetProfileDataAsync_GivenPinUser_GetsRejected()
+        {
+            var automocker = new AutoMocker();
             automocker
                 .SetupOptions(new AnonymousTokensConfig
                 {
                     Enabled = true,
                     EnabledClientFlags = new []{"some-flag", "some-other-flag"}
-                });
+                })
+                .SetupOptions(DefaultVerificationLimitConfig);
 
             var context = new ProfileDataRequestContext
             {
@@ -96,14 +174,21 @@ namespace Fhi.Smittestopp.Verification.Tests.Server.Account
                     new Claim(InternalClaims.PinVerified, "true"),
                     new Claim(InternalClaims.Pseudonym, "pseudo-1")
                 })),
-                RequestedClaimTypes = new[] { DkSmittestopClaims.Covid19Status }
+                RequestedClaimTypes = new[]
+                {
+                    DkSmittestopClaims.Covid19Status,
+                    DkSmittestopClaims.Covid19Blocked,
+                    JwtClaimTypes.Role
+                }
             };
 
             var target = automocker.CreateInstance<ProfileService>();
 
             await target.GetProfileDataAsync(context);
 
-            context.IssuedClaims.Should().Contain(x => x.Type == DkSmittestopClaims.Covid19Status && x.Value == DkSmittestopClaims.StatusValues.Positive);
+            context.IssuedClaims.Should().NotContain(x => x.Type == DkSmittestopClaims.Covid19Status && x.Value == DkSmittestopClaims.StatusValues.Positive);
+            context.IssuedClaims.Should().NotContain(x => x.Type == JwtClaimTypes.Role && x.Value == VerificationRoles.UploadApproved);
+            context.IssuedClaims.Should().Contain(x => x.Type == DkSmittestopClaims.Covid19Blocked && x.Value == "true");
             automocker.VerifyAll();
         }
 
@@ -117,13 +202,14 @@ namespace Fhi.Smittestopp.Verification.Tests.Server.Account
                 {
                     Enabled = true,
                     EnabledClientFlags = new[] { "some-flag", "some-other-flag" }
-                });
+                })
+                 .SetupOptions(DefaultVerificationLimitConfig);;
 
             var context = new ProfileDataRequestContext
             {
                 Subject = new ClaimsPrincipal(new ClaimsIdentity(new[]
                 {
-                    new Claim(InternalClaims.NationalIdentifier, "01019098765"),
+                    new Claim(InternalClaims.NationalIdentifier, "08089409382"),
                     new Claim(InternalClaims.Pseudonym, "pseudo-1")
                 })),
                 RequestedClaimTypes = new[] { VerificationClaims.AnonymousToken }
@@ -148,7 +234,8 @@ namespace Fhi.Smittestopp.Verification.Tests.Server.Account
                 {
                     Enabled = false,
                     EnabledClientFlags = new [] {"should-not-be-returned"}
-                });
+                })
+                .SetupOptions(DefaultVerificationLimitConfig);
 
             var context = new ProfileDataRequestContext
             {
@@ -166,5 +253,12 @@ namespace Fhi.Smittestopp.Verification.Tests.Server.Account
 
             context.IssuedClaims.Should().NotContain(x => x.Type == VerificationClaims.AnonymousToken);
         }
+        
+        private static VerificationLimitConfig DefaultVerificationLimitConfig = new VerificationLimitConfig()
+        {
+            MaxLimitDuration = new TimeSpan(0,24,0),
+            MaxVerificationsAllowed = 3,
+            MinimumAgeInYears = 16
+        };
     }
 }
